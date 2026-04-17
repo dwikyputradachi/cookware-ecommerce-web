@@ -1,61 +1,109 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ $product->name }} - Santo Cookware</title>
-    @vite(['resources/css/app.css'])
-</head>
-<body class="bg-gray-50">
+@extends('layouts.app')
 
-@php $cartCount = count(session('cart', [])); @endphp
+@section('title', $product->name . ' - Santo Cookware')
 
-<nav class="bg-white border-b border-gray-100 sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-        <a href="/" class="text-xl font-semibold text-blue-600">Santo Cookware</a>
-        <form action="/cart/add/{{ $product->id }}" method="POST">
-            @csrf
-            <button type="submit" class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-xl transition">
-                + Keranjang
-            </button>
-        </form>
-    </div>
-</nav>
+@section('content')
+<div class="container mx-auto px-4 py-8 max-w-5xl">
 
-<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <a href="/" class="hover:text-blue-600 transition-colors">Katalog</a>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <span class="text-gray-800 font-medium truncate">{{ $product->name }}</span>
+    </nav>
 
-    <a href="/products" class="text-sm text-blue-500 hover:underline mb-4 inline-block">← Kembali</a>
+    <div class="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm flex flex-col md:flex-row">
+        
+        <div class="w-full md:w-1/2 relative bg-gray-50 p-4 flex items-center justify-center">
+            <img src="{{ $product->image ?? 'https://via.placeholder.com/600x600' }}"
+                 class="w-full h-[350px] md:h-[500px] object-cover rounded-[2rem] shadow-inner transition-transform hover:scale-105 duration-500">
+            
+            @if($product->is_cod_available)
+                <div class="absolute top-8 left-8 bg-green-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                    <i data-lucide="truck" class="w-3 h-3"></i> BISA COD
+                </div>
+            @endif
+        </div>
 
-    <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden md:flex">
+        <div class="p-8 md:p-12 flex flex-col flex-1">
+            <div class="flex-1">
+                <h1 class="text-3xl font-bold text-gray-900 leading-tight">{{ $product->name }}</h1>
+                
+                <div class="flex items-center gap-4 mt-4">
+                    <p class="text-3xl font-extrabold text-blue-600">Rp {{ number_format($product->price) }}</p>
+                    <div class="h-6 w-[1px] bg-gray-200"></div>
+                    <p class="text-sm {{ $product->stock > 0 ? 'text-green-600' : 'text-red-500' }} font-semibold uppercase tracking-wider">
+                        {{ $product->stock > 0 ? 'Tersedia: ' . $product->stock : 'Stok Habis' }}
+                    </p>
+                </div>
 
-        <img src="{{ $product->image ?? 'https://via.placeholder.com/400x400' }}"
-             class="w-full md:w-80 h-72 md:h-auto object-cover">
+                <div class="grid grid-cols-2 gap-4 mt-8 py-6 border-y border-gray-50">
+                    <div class="flex items-center gap-2">
+                        <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                            <i data-lucide="shield-check" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-xs font-medium text-gray-600">Kualitas Premium</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
+                            <i data-lucide="award" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-xs font-medium text-gray-600">Original Santo</span>
+                    </div>
+                </div>
 
-        <div class="p-6 flex flex-col justify-between flex-1">
-            <div>
-                <h1 class="text-xl font-semibold text-gray-800">{{ $product->name }}</h1>
-                <p class="text-2xl font-bold text-blue-600 mt-2">Rp {{ number_format($product->price) }}</p>
-
-                @if($product->is_cod_available)
-                    <span class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full mt-2 inline-block">COD tersedia</span>
-                @endif
-
-                <p class="text-gray-500 text-sm mt-4 leading-relaxed">{{ $product->description }}</p>
-                <p class="text-sm mt-3 {{ $product->stock > 0 ? 'text-green-600' : 'text-red-500' }}">
-                    Stok: {{ $product->stock > 0 ? $product->stock . ' tersedia' : 'Habis' }}
-                </p>
+                <div class="mt-8">
+                    <h3 class="text-sm font-bold text-gray-800 uppercase tracking-widest mb-3">Deskripsi Produk</h3>
+                    <p class="text-gray-500 text-base leading-relaxed">
+                        {{ $product->description ?? 'Tidak ada deskripsi untuk produk ini.' }}
+                    </p>
+                </div>
             </div>
 
             @if($product->stock > 0)
-            <form action="/cart/add/{{ $product->id }}" method="POST" class="mt-6">
-                @csrf
-                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition">
-                    + Tambah ke Keranjang
-                </button>
-            </form>
+            <div class="mt-10 flex flex-col sm:flex-row gap-4">
+                <form action="/cart/add/{{ $product->id }}" method="POST" class="flex-1">
+                    @csrf
+                    <input type="hidden" name="redirect" value="back">
+                    <button class="w-full flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 py-4 rounded-2xl font-bold transition-all active:scale-[0.97]">
+                        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                        + Keranjang
+                    </button>
+                </form>
+
+                <form action="/cart/add/{{ $product->id }}" method="POST" class="flex-[1.5]">
+                    @csrf
+                    <input type="hidden" name="redirect" value="cart">
+                    <button class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-xl shadow-blue-200 transition-all active:scale-[0.97]">
+                        <i data-lucide="zap" class="w-5 h-5"></i>
+                        Beli Sekarang
+                    </button>
+                </form>
+            </div>
+            @else
+                <div class="mt-10 bg-gray-50 border border-gray-100 text-gray-400 text-center py-5 rounded-2xl font-medium">
+                    Mohon Maaf, Produk Sedang Habis
+                </div>
             @endif
         </div>
     </div>
 
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div class="p-6">
+            <i data-lucide="message-square" class="w-8 h-8 text-blue-500 mx-auto mb-3"></i>
+            <h4 class="font-bold text-gray-800">Konsultasi Gratis</h4>
+            <p class="text-sm text-gray-500 mt-1">Bingung pilih alat masak? Chat kami di WhatsApp.</p>
+        </div>
+        <div class="p-6">
+            <i data-lucide="package-check" class="w-8 h-8 text-blue-500 mx-auto mb-3"></i>
+            <h4 class="font-bold text-gray-800">Packing Aman</h4>
+            <p class="text-sm text-gray-500 mt-1">Setiap pengiriman dilapisi bubble wrap tebal.</p>
+        </div>
+        <div class="p-6">
+            <i data-lucide="credit-card" class="w-8 h-8 text-blue-500 mx-auto mb-3"></i>
+            <h4 class="font-bold text-gray-800">Bayar di Tempat</h4>
+            <p class="text-sm text-gray-500 mt-1">Cek barang dulu baru bayar (untuk produk COD).</p>
+        </div>
+    </div>
+
 </div>
-</body>
-</html>
+@endsection

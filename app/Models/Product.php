@@ -14,4 +14,8 @@ class Product extends Model
         'image',
         'is_cod_available'
     ];
+    public function orderItems()
+{
+    return $this->hasMany(OrderItem::class);
+}
 }
