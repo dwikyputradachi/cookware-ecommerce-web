@@ -22,7 +22,6 @@
 
 <div class="container mx-auto px-4 py-8 grid md:grid-cols-3 gap-6 max-w-5xl">
 
-    <!-- KIRI: ITEM -->
     <div class="md:col-span-2 space-y-4">
         <h1 class="text-xl font-semibold text-gray-800">Keranjang Belanja</h1>
 
@@ -32,7 +31,7 @@
         @forelse($cart as $id => $item)
         <div id="item-{{ $id }}" class="bg-white rounded-2xl border border-gray-100 p-4 flex gap-4">
             <img src="{{ $item['image'] ?? 'https://via.placeholder.com/100' }}"
-                 class="w-20 h-20 object-cover rounded-xl flex-shrink-0">
+                 class="w-20 h-20 object-cover rounded-xl shrink-0">
             <div class="flex-1">
                 <h2 class="font-medium text-gray-800 text-sm">{{ $item['name'] }}</h2>
                 <p class="text-blue-600 font-semibold mt-1">Rp {{ number_format($item['price']) }}</p>
@@ -53,10 +52,8 @@
         </div>
     </div>
 
-    <!-- KANAN: CHECKOUT -->
     <div class="space-y-4">
 
-        <!-- TOTAL -->
         <div class="bg-white rounded-2xl border border-gray-100 p-4">
             @php
                 $total = collect($cart)->sum(fn($i) => $i['price'] * $i['quantity']);
@@ -66,7 +63,6 @@
             <p id="total-price" class="text-xl font-bold text-blue-600 mt-1">Rp {{ number_format($total) }}</p>
         </div>
 
-        <!-- FORM -->
         <div class="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
             <h2 class="font-medium text-sm text-gray-700">Informasi Pelanggan</h2>
             <div class="flex gap-2">
@@ -78,7 +74,6 @@
             <input type="text" placeholder="Nomor telepon" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
         </div>
 
-        <!-- PENGIRIMAN -->
         <div class="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
             <h2 class="font-medium text-sm text-gray-700">Pengiriman</h2>
             <div class="flex gap-4 text-sm">
@@ -90,7 +85,6 @@
             <input type="text" placeholder="Catatan (opsional)" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
         </div>
 
-        <!-- PEMBAYARAN -->
         <div class="bg-white rounded-2xl border border-gray-100 p-4 space-y-2">
             <h2 class="font-medium text-sm text-gray-700">Metode Pembayaran</h2>
             <div class="space-y-2 text-sm">
