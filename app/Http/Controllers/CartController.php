@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product; // Pastikan ini juga ada
+use App\Models\Product;
+
 class CartController extends Controller
 {
     /**
@@ -13,20 +14,22 @@ class CartController extends Controller
      */
     public function index()
     {
-        // PERBAIKAN: Ambil data dari session dan kirim ke view
         $cart = session()->get('cart', []);
-        
         return view('cart.index', compact('cart'));
     }
 
-    /**
-     * Menambah Produk ke Keranjang
-     */
-    public function add(Request $request, $id)
+   public function add(Request $request, $id)
     {
         $product = Product::findOrFail($id);
         $cart = session()->get('cart', []);
 
+        // 1. Cek Stok (Mencegah beli barang gaib)
+        $currentQtyInCart = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
+        if ($product->stock <= $currentQtyInCart) {
+            return back()->with('error', 'Maaf, stok tidak mencukupi!');
+        }
+
+        // 2. Logika Tambah/Update Session
         if(isset($cart[$id])) {
             $cart[$id]['quantity']++;
         } else {
@@ -35,27 +38,29 @@ class CartController extends Controller
                 "price" => $product->price,
                 "quantity" => 1,
                 "image" => $product->image,
-                // PENTING: Tambahkan ini agar fitur filter COD di Blade jalan
-                "is_cod_available" => $product->is_cod_available 
+                "is_cod_available" => (bool) $product->is_cod_available 
             ];
         }
 
         session()->put('cart', $cart);
 
-        // Logic Redirect: Ke keranjang atau tetap di halaman produk
+        // 3. LOGIKA REDIRECT (Kuncinya di sini)
+        // Kita cek input 'redirect' dari form
         if ($request->input('redirect') === 'cart') {
-            return redirect('/cart');
+            return redirect('/cart'); // Paksa ke halaman keranjang
         }   
         
+        // Kalau value-nya 'back' atau tidak ada, balik ke halaman sebelumnya
         return back()->with('success', 'Produk berhasil ditambahkan!');
     }
-
+    /**
+     * Update Quantity Keranjang
+     */
     public function update(Request $request, $id)
     {
         $cart = session()->get('cart', []);
 
         if(isset($cart[$id])) {
-            // Handle JSON request dari fetch API
             $data = json_decode($request->getContent(), true) ?? $request->all();
             $action = $data['action'] ?? null;
 
@@ -65,8 +70,6 @@ class CartController extends Controller
 
             if($action == 'minus') {
                 $cart[$id]['quantity']--;
-
-                // Jika jumlah 0, hapus dari keranjang
                 if($cart[$id]['quantity'] <= 0){
                     unset($cart[$id]);
                 }
@@ -81,6 +84,9 @@ class CartController extends Controller
         ]);
     }
 
+    /**
+     * Hapus Item dari Keranjang
+     */
     public function remove($id)
     {
         $cart = session()->get('cart', []);
@@ -95,18 +101,38 @@ class CartController extends Controller
             'cart' => $cart
         ]);
     }
+
+    /**
+     * Proses Checkout
+     */
    public function checkout(Request $request)
     {
         try {
             $cart = session()->get('cart', []);
-            
+
+            // Jika error 400 muncul di sini, berarti session 'cart' kosong
+            if (empty($cart)) {
+                return response()->json([
+                    'success' => false, 
+                    'error' => 'Keranjang kosong atau session telah habis. Silakan refresh halaman.'
+                ], 400);
+            }
+
+            // Susun string produk
+            $itemDetails = [];
+            foreach ($cart as $item) {
+                $itemDetails[] = $item['name'] . " (" . $item['quantity'] . "x)";
+            }
+            $itemsString = implode(", ", $itemDetails);
+
+            // Hitung total harga di server (Keamanan agar tidak dimanipulasi)
+            $totalPriceServer = collect($cart)->sum(function($item) {
+                return $item['price'] * $item['quantity'];
+            });
+
             $proofPath = null;
             if ($request->hasFile('payment_proof')) {
-                $file = $request->file('payment_proof');
-                
-                // Simpan ke folder storage/app/public/proofs
-                // Fungsi store() otomatis buat nama random agar tidak bentrok
-                $path = $file->store('proofs', 'public'); 
+                $path = $request->file('payment_proof')->store('proofs', 'public'); 
                 $proofPath = 'storage/' . $path;
             }
 
@@ -115,12 +141,11 @@ class CartController extends Controller
                 'customer_phone'   => $request->phone,
                 'customer_address' => $request->address,
                 'payment_method'   => $request->payment_method,
-                'total_price'      => $request->total_price, // Pastikan ini dikirim/dihitung
+                'total_price'      => $totalPriceServer, 
                 'status'           => ($request->payment_method == 'cod') ? 'pending' : 'waiting_verification',
-                'payment_proof'    => $proofPath, // PIN PENTING: Pastikan variabel ini ada di sini
+                'payment_proof'    => $proofPath,
             ]);
 
-            // 2. Simpan Items
             foreach($cart as $id => $item) {
                 OrderItem::create([
                     'order_id'   => $order->id,
@@ -131,7 +156,20 @@ class CartController extends Controller
             }
 
             session()->forget('cart');
-            return response()->json(['success' => true, 'order_id' => $order->id]);
+
+            return response()->json([
+                'success' => true, 
+                'order_id' => $order->id,
+                'items_string' => $itemsString,
+                'data_server' => [
+                    'name' => $order->customer_name,
+                    'phone' => $order->customer_phone,
+                    'address' => $order->customer_address,
+                    'total_price' => number_format($order->total_price, 0, ',', '.'),
+                    'payment_method' => $order->payment_method,
+                    'status_text' => ($order->payment_method == 'cod') ? 'Menunggu Pengiriman (COD)' : 'Sudah Bayar (Verifikasi Admin)'
+                ]
+            ]);
 
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);

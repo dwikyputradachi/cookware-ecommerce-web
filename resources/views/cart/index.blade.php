@@ -238,6 +238,21 @@ function refreshTotal(cart) {
     const qty = items.reduce((s, i) => s + i.quantity, 0);
     const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
     
+    const navBadge = document.getElementById('cart-badge');
+    if (navBadge) {
+        navBadge.style.transform = 'scale(1.3)';
+        setTimeout(() => {
+            navBadge.style.transform = 'scale(1)';
+        }, 200);
+        navBadge.textContent = qty;
+        if (qty > 0) {
+            navBadge.classList.remove('hidden');
+        } else {
+            navBadge.classList.add('hidden');
+        }
+    }
+    // --------------------------------------------
+
     const canCod = items.length > 0 && items.every(i => (i.is_cod_available == true || i.is_cod_available == 1));
     const codContainer = document.getElementById('cod-container');
     if(canCod) codContainer.classList.remove('hidden'); else codContainer.classList.add('hidden');
@@ -256,9 +271,8 @@ async function checkout() {
     const address = document.getElementById('cust_address').value;
     const proofFile = document.getElementById('payment_proof').files[0];
     
-    // AMBIL TOTAL HARGA DARI TEKS (Hilangkan "Rp" dan titik ribuan)
-    const totalPriceRaw = document.getElementById('total-price').textContent;
-    const totalPrice = totalPriceRaw.replace(/[^0-9]/g, ''); 
+    // Ambil harga asli dari teks untuk dikirim ke server (sebagai formalitas)
+    const totalPriceRaw = document.getElementById('total-price').textContent.replace(/[^0-9]/g, ''); 
 
     if (!name || !phone || !address || !selectedMethod) {
         return alert('Harap isi data diri dan pilih metode pembayaran!');
@@ -269,7 +283,7 @@ async function checkout() {
     formData.append('phone', phone);
     formData.append('address', address);
     formData.append('payment_method', selectedMethod);
-    formData.append('total_price', totalPrice); // TAMBAHKAN INI
+    formData.append('total_price', totalPriceRaw);
     if(proofFile) formData.append('payment_proof', proofFile);
 
     try {
@@ -280,8 +294,33 @@ async function checkout() {
         });
 
         const result = await response.json();
+        
         if (result.success) {
-            const msg = `Halo Pak Santo,\n\n*PESANAN BARU #${result.order_id}*\n--------------------------\nNama: ${name}\nProduk: ${result.items_string}\nMetode: ${selectedMethod.toUpperCase()}\nStatus: Sudah Bayar (Cek di Web Admin)\n--------------------------`;
+            /* PENTING: Kita gunakan data dari 'result' (Server), 
+               bukan dari variabel local di atas agar tidak bisa dimanipulasi.
+            */
+            const msg = `KONFIRMASI PESANAN BARU - SANTO COOKWARE
+Order ID: #${result.order_id}
+------------------------------------------
+DETAIL PELANGGAN
+Nama: ${result.data_server.name}
+No. WA: ${result.data_server.phone}
+Alamat: ${result.data_server.address}
+
+DETAIL PRODUK
+${result.items_string}
+
+TOTAL PEMBAYARAN
+Rp ${result.data_server.total_price}
+
+METODE PEMBAYARAN
+${result.data_server.payment_method.toUpperCase()}
+
+STATUS
+${result.data_server.status_text}
+------------------------------------------
+Pesanan telah tercatat di sistem Admin.`;
+
             window.open(`https://wa.me/6282285455631?text=${encodeURIComponent(msg)}`, '_blank');
             location.href = '/'; 
         } else {
