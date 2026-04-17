@@ -18,19 +18,21 @@ class CartController extends Controller
         return view('cart.index', compact('cart'));
     }
 
-   public function add(Request $request, $id)
+    /**
+     * Tambah Produk ke Keranjang
+     */
+    public function add(Request $request, $id)
     {
         $product = Product::findOrFail($id);
         $cart = session()->get('cart', []);
 
-        // 1. Cek Stok (Mencegah beli barang gaib)
+        // 1. Cek Stok (Mencegah beli barang melebihi stok yang ada)
         $currentQtyInCart = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
         if ($product->stock <= $currentQtyInCart) {
             return back()->with('error', 'Maaf, stok tidak mencukupi!');
         }
 
-        // 2. Logika Tambah/Update Session
-        if(isset($cart[$id])) {
+        if (isset($cart[$id])) {
             $cart[$id]['quantity']++;
         } else {
             $cart[$id] = [
@@ -44,33 +46,38 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        // 3. LOGIKA REDIRECT (Kuncinya di sini)
-        // Kita cek input 'redirect' dari form
+        // 2. Logika Redirect
         if ($request->input('redirect') === 'cart') {
-            return redirect('/cart'); // Paksa ke halaman keranjang
+            return redirect('/cart');
         }   
         
-        // Kalau value-nya 'back' atau tidak ada, balik ke halaman sebelumnya
         return back()->with('success', 'Produk berhasil ditambahkan!');
     }
+
     /**
-     * Update Quantity Keranjang
+     * Update Quantity Keranjang via AJAX
      */
     public function update(Request $request, $id)
     {
         $cart = session()->get('cart', []);
 
-        if(isset($cart[$id])) {
+        if (isset($cart[$id])) {
             $data = json_decode($request->getContent(), true) ?? $request->all();
             $action = $data['action'] ?? null;
 
-            if($action == 'plus') {
-                $cart[$id]['quantity']++;
+            if ($action == 'plus') {
+                // Opsional: Tambahkan cek stok juga di sini agar tidak tembus via tombol +
+                $product = Product::find($id);
+                if ($product && $product->stock > $cart[$id]['quantity']) {
+                    $cart[$id]['quantity']++;
+                } else {
+                    return response()->json(['success' => false, 'error' => 'Stok habis']);
+                }
             }
 
-            if($action == 'minus') {
+            if ($action == 'minus') {
                 $cart[$id]['quantity']--;
-                if($cart[$id]['quantity'] <= 0){
+                if ($cart[$id]['quantity'] <= 0) {
                     unset($cart[$id]);
                 }
             }
@@ -91,7 +98,7 @@ class CartController extends Controller
     {
         $cart = session()->get('cart', []);
 
-        if(isset($cart[$id])) {
+        if (isset($cart[$id])) {
             unset($cart[$id]);
             session()->put('cart', $cart);
         }
@@ -103,39 +110,40 @@ class CartController extends Controller
     }
 
     /**
-     * Proses Checkout
+     * Proses Checkout & Potong Stok
      */
-   public function checkout(Request $request)
+    public function checkout(Request $request)
     {
         try {
             $cart = session()->get('cart', []);
 
-            // Jika error 400 muncul di sini, berarti session 'cart' kosong
             if (empty($cart)) {
                 return response()->json([
                     'success' => false, 
-                    'error' => 'Keranjang kosong atau session telah habis. Silakan refresh halaman.'
+                    'error' => 'Keranjang kosong atau session telah habis.'
                 ], 400);
             }
 
-            // Susun string produk
+            // Susun string produk untuk WhatsApp
             $itemDetails = [];
             foreach ($cart as $item) {
                 $itemDetails[] = $item['name'] . " (" . $item['quantity'] . "x)";
             }
             $itemsString = implode(", ", $itemDetails);
 
-            // Hitung total harga di server (Keamanan agar tidak dimanipulasi)
+            // Hitung total harga di server
             $totalPriceServer = collect($cart)->sum(function($item) {
                 return $item['price'] * $item['quantity'];
             });
 
+            // Handle Bukti Pembayaran
             $proofPath = null;
             if ($request->hasFile('payment_proof')) {
                 $path = $request->file('payment_proof')->store('proofs', 'public'); 
                 $proofPath = 'storage/' . $path;
             }
 
+            // 1. Simpan Data Order
             $order = Order::create([
                 'customer_name'    => $request->name,
                 'customer_phone'   => $request->phone,
@@ -146,15 +154,27 @@ class CartController extends Controller
                 'payment_proof'    => $proofPath,
             ]);
 
-            foreach($cart as $id => $item) {
+            // 2. Simpan Detail Item & Potong Stok
+            foreach ($cart as $id => $item) {
                 OrderItem::create([
                     'order_id'   => $order->id,
                     'product_id' => $id,
                     'quantity'   => $item['quantity'],
                     'price'      => $item['price'],
                 ]);
+            
+                $product = Product::find($id); // Gunakan Product::find
+                if ($product) {
+                    if ($product->stock >= $item['quantity']) {
+                        // FIX TYPO: tadi kamu tulis $itemDetails['quantity'], harusnya $item['quantity']
+                        $product->decrement('stock', $item['quantity']);
+                    } else {
+                        throw new \Exception("Stok produk {$product->name} tidak mencukupi.");
+                    }
+                }
             }
 
+            // 3. Bersihkan Keranjang
             session()->forget('cart');
 
             return response()->json([
