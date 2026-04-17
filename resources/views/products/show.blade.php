@@ -15,7 +15,7 @@
         
         <div class="w-full md:w-1/2 relative bg-gray-50 p-4 flex items-center justify-center">
             <img src="{{ $product->image ?? 'https://via.placeholder.com/600x600' }}"
-                 class="w-full h-[350px] md:h-[500px] object-cover rounded-[2rem] shadow-inner transition-transform hover:scale-105 duration-500">
+                 class="w-full h-87.5 md:h-125 object-cover rounded-4xl shadow-inner transition-transform hover:scale-105 duration-500">
             
             @if($product->is_cod_available)
                 <div class="absolute top-8 left-8 bg-green-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
@@ -30,7 +30,7 @@
                 
                 <div class="flex items-center gap-4 mt-4">
                     <p class="text-3xl font-extrabold text-blue-600">Rp {{ number_format($product->price) }}</p>
-                    <div class="h-6 w-[1px] bg-gray-200"></div>
+                    <div class="h-6 w-px bg-gray-200"></div>
                     <p class="text-sm {{ $product->stock > 0 ? 'text-green-600' : 'text-red-500' }} font-semibold uppercase tracking-wider">
                         {{ $product->stock > 0 ? 'Tersedia: ' . $product->stock : 'Stok Habis' }}
                     </p>

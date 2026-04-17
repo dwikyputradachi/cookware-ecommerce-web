@@ -146,7 +146,7 @@
                     </div>
                 </div>
 
-                <button onclick="checkout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-[1.5rem] font-bold shadow-xl shadow-blue-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                <button onclick="checkout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-3xl font-bold shadow-xl shadow-blue-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
                     Konfirmasi & Pesan via WA <i data-lucide="arrow-right" class="w-5 h-5"></i>
                 </button>
             </div>
