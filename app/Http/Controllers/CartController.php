@@ -46,7 +46,6 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        // 2. Logika Redirect
         if ($request->input('redirect') === 'cart') {
             return redirect('/cart');
         }   
@@ -54,9 +53,6 @@ class CartController extends Controller
         return back()->with('success', 'Produk berhasil ditambahkan!');
     }
 
-    /**
-     * Update Quantity Keranjang via AJAX
-     */
     public function update(Request $request, $id)
     {
         $cart = session()->get('cart', []);
@@ -90,10 +86,6 @@ class CartController extends Controller
             'cart' => $cart
         ]);
     }
-
-    /**
-     * Hapus Item dari Keranjang
-     */
     public function remove($id)
     {
         $cart = session()->get('cart', []);

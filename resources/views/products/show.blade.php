@@ -5,6 +5,18 @@
 @section('content')
 <div class="container mx-auto px-4 py-8 max-w-5xl">
 
+    {{-- Logika Deteksi Video YouTube --}}
+    @php
+        $videoId = null;
+        if ($product->video_url) {
+            $pattern = '%^(?:https?://)?(?:www\.)?(?:youtu\.be/|youtube\.com/(?:embed/|v/|watch\?v=|shorts/))([\w-]{11})%i';
+            if (preg_match($pattern, $product->video_url, $match)) {
+                $videoId = $match[1];
+            }
+        }
+    @endphp
+
+    {{-- Breadcrumb --}}
     <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <a href="/" class="hover:text-blue-600 transition-colors">Katalog</a>
         <i data-lucide="chevron-right" class="w-4 h-4"></i>
@@ -13,17 +25,94 @@
 
     <div class="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm flex flex-col md:flex-row">
         
-        <div class="w-full md:w-1/2 relative bg-gray-50 p-4 flex items-center justify-center">
-            <img src="{{ $product->image ?? 'https://via.placeholder.com/600x600' }}"
-                 class="w-full h-87.5 md:h-125 object-cover rounded-4xl shadow-inner transition-transform hover:scale-105 duration-500">
+        {{-- Media Section --}}
+        <div class="w-full md:w-1/2 relative bg-gray-50 p-4 md:p-6" 
+             x-data="{ 
+                slide: 1, 
+                total: {{ $videoId ? 2 : 1 }},
+                autoplay: null,
+                init() {
+                    if(this.total > 1) { this.startAutoplay(); }
+                },
+                startAutoplay() {
+                    this.autoplay = setInterval(() => {
+                        this.slide = this.slide === this.total ? 1 : this.slide + 1;
+                    }, 6000); 
+                },
+                stopAutoplay() {
+                    if(this.autoplay) clearInterval(this.autoplay);
+                }
+             }"
+             @mouseenter="stopAutoplay()" 
+             @mouseleave="startAutoplay()">
             
+            <div class="relative group overflow-hidden rounded-4xl shadow-inner border-4 border-white bg-white">
+                
+                <div class="relative h-87.5 md:h-110">
+                    {{-- Slide 1: Selalu Muncul (Foto atau Placeholder) --}}
+                    <div x-show="slide === 1" 
+                         x-transition:enter="transition ease-out duration-500"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         class="absolute inset-0 w-full h-full">
+                        
+                        @if($product->image)
+                            <img src="{{ asset('storage/' . $product->image) }}" class="w-full h-full object-cover">
+                        @else
+                            {{-- Container Placeholder agar Slide 1 TIDAK KOSONG --}}
+                            <div class="w-full h-full bg-blue-50 flex flex-col items-center justify-center text-blue-600 p-6">
+                                <i data-lucide="image" class="w-16 h-16 mb-4 opacity-20"></i>
+                                <span class="font-bold tracking-widest text-sm uppercase">Santo Cookware</span>
+                                <p class="text-[10px] mt-2 opacity-50 uppercase tracking-tighter">Gambar sedang disiapkan</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Slide 2: Video --}}
+                    @if($videoId)
+                    <div x-show="slide === 2" x-cloak
+                         x-transition:enter="transition ease-out duration-500"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         class="absolute inset-0 bg-black">
+                        <iframe class="w-full h-full" 
+                                src="https://www.youtube.com/embed/{{ $videoId }}" 
+                                frameborder="0" 
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                    @endif
+                </div>
+
+                {{-- Tombol Navigasi Manual --}}
+                @if($videoId)
+                <button @click="slide = (slide === 1 ? 2 : 1)" 
+                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 text-blue-600 p-3 rounded-2xl shadow-xl z-30 transition-all active:scale-90 border border-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+
+                <button @click="slide = (slide === 1 ? 2 : 1)" 
+                        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 text-blue-600 p-3 rounded-2xl shadow-xl z-30 transition-all active:scale-90 border border-gray-100 opacity-100 md:opacity-0 md:group-hover:opacity-100">
+                    <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                </button>
+
+                {{-- Indikator Slide --}}
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+                    <div class="h-1.5 transition-all duration-300 rounded-full" :class="slide === 1 ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'"></div>
+                    <div class="h-1.5 transition-all duration-300 rounded-full" :class="slide === 2 ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'"></div>
+                </div>
+                @endif
+            </div>
+
+            {{-- Label COD --}}
             @if($product->is_cod_available)
-                <div class="absolute top-8 left-8 bg-green-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                <div class="absolute top-10 left-10 bg-green-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 z-40">
                     <i data-lucide="truck" class="w-3 h-3"></i> BISA COD
                 </div>
             @endif
         </div>
 
+        {{-- Detail Section --}}
         <div class="p-8 md:p-12 flex flex-col flex-1">
             <div class="flex-1">
                 <h1 class="text-3xl font-bold text-gray-900 leading-tight">{{ $product->name }}</h1>
@@ -47,7 +136,7 @@
                         <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
                             <i data-lucide="award" class="w-5 h-5"></i>
                         </div>
-                        <span class="text-xs font-medium text-gray-600">Original Santo</span>
+                        <span class="text-xs font-medium text-gray-600">Original Bos</span>
                     </div>
                 </div>
 
@@ -59,6 +148,7 @@
                 </div>
             </div>
 
+            {{-- Action Buttons --}}
             @if($product->stock > 0)
             <div class="mt-10 flex flex-col sm:flex-row gap-4">
                 <form action="/cart/add/{{ $product->id }}" method="POST" class="flex-1">
@@ -79,31 +169,8 @@
                     </button>
                 </form>
             </div>
-            @else
-                <div class="mt-10 bg-gray-50 border border-gray-100 text-gray-400 text-center py-5 rounded-2xl font-medium">
-                    Mohon Maaf, Produk Sedang Habis
-                </div>
             @endif
         </div>
     </div>
-
-    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-        <div class="p-6">
-            <i data-lucide="message-square" class="w-8 h-8 text-blue-500 mx-auto mb-3"></i>
-            <h4 class="font-bold text-gray-800">Konsultasi Gratis</h4>
-            <p class="text-sm text-gray-500 mt-1">Bingung pilih alat masak? Chat kami di WhatsApp.</p>
-        </div>
-        <div class="p-6">
-            <i data-lucide="package-check" class="w-8 h-8 text-blue-500 mx-auto mb-3"></i>
-            <h4 class="font-bold text-gray-800">Packing Aman</h4>
-            <p class="text-sm text-gray-500 mt-1">Setiap pengiriman dilapisi bubble wrap tebal.</p>
-        </div>
-        <div class="p-6">
-            <i data-lucide="credit-card" class="w-8 h-8 text-blue-500 mx-auto mb-3"></i>
-            <h4 class="font-bold text-gray-800">Bayar di Tempat</h4>
-            <p class="text-sm text-gray-500 mt-1">Cek barang dulu baru bayar (untuk produk COD).</p>
-        </div>
-    </div>
-
 </div>
 @endsection

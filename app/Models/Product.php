@@ -8,11 +8,13 @@ class Product extends Model
 {
     protected $fillable = [
         'name',
-        'description',
+        'category', 
         'price',
-        'stock',
+        'description',
         'image',
-        'is_cod_available'
+        'stock',
+        'is_cod_available',
+        'video_url'
     ];
     public function orderItems()
 {
