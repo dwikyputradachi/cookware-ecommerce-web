@@ -3,7 +3,6 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <style>
-    /* Gunakan variabel CSS yang sudah kita buat sebelumnya */
     .swiper-pagination-bullet-active { background: var(--color-secondary) !important; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

@@ -23,7 +23,7 @@ class ProductController extends Controller
 
     $products = $query->latest()->get();
 
-        $banners = \App\Models\Banner::where('is_active', true)->orderBy('order')->get();
+        $banners = \App\Models\Banner::where('is_active', true)->orderBy('sort_order')->get();
         $categoryNames = \App\Models\Product::distinct()->pluck('category')->filter();
 
         $categories = $categoryNames->map(function($name) {
