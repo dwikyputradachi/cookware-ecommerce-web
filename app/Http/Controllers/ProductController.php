@@ -10,7 +10,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $banners = \App\Models\Banner::where('is_active', true)->orderBy('order')->get();
+        $banners = collect([]);
     
         $categoryNames = \App\Models\Product::distinct()->pluck('category')->filter();
     
