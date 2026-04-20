@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Santo Cookware')</title>
+    <title>@yield('title', 'Murazon Cookware')</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,11 +22,11 @@
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             -webkit-font-smoothing: antialiased; 
-            -moz-osx-font-smoothing: grayscale;
         }
         
+        /* Kembali ke Cokelat Murazon Signature */
         .nav-glass {
-            background: rgba(37, 99, 235, 0.9);
+            background: rgba(107, 48, 5, 0.96); /* Cokelat Tua */
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
@@ -43,35 +43,78 @@
 @endphp
 
 {{-- Navbar --}}
-<nav class="nav-glass sticky top-0 z-50 border-b border-blue-400/20 shadow-sm">
-    <div class="container mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
-        
-        <a href="/" class="flex items-center gap-2 group transition-transform active:scale-95">
-            <div class="bg-white p-1.5 rounded-xl shadow-sm group-hover:shadow-md transition-all">
-                <i data-lucide="cooking-pot" class="w-6 h-6 text-blue-600"></i>
-            </div>
-            <div class="flex flex-col leading-tight">
-                <span class="text-lg font-bold tracking-tight text-white uppercase italic">
-                    Santo<span class="font-light opacity-80 uppercase">Cook</span>
-                </span>
-                <span class="text-[10px] text-blue-100 font-medium tracking-widest uppercase">Premium Tools</span>
-            </div>
-        </a>
-        
-        <div class="hidden md:flex items-center gap-8">
-            <a href="/" class="text-sm font-semibold text-blue-50 hover:text-white transition-colors">Home</a>
-            <a href="#" class="text-sm font-semibold text-blue-50 hover:text-white transition-colors">Facebook</a>
-            <a href="#" class="text-sm font-semibold text-blue-50 hover:text-white transition-colors">Instagram</a>
-            <a href="#" class="text-sm font-semibold text-blue-50 hover:text-white transition-colors">Youtube</a>
-        </div>
-        
-        <div class="flex items-center gap-2">
-            <a href="/cart" class="group relative flex items-center justify-center p-2.5 bg-white/10 hover:bg-white/20 rounded-2xl border border-white/10 transition-all active:scale-90">
-                <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
-                <span id="cart-badge" class="{{ $cartCount > 0 ? '' : 'hidden' }} absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-5 h-5 flex items-center justify-center px-1 rounded-full border-2 border-blue-600 shadow-lg">
-                    {{ $cartCount }}
-                </span>
+<nav class="nav-glass sticky top-0 z-50 border-b border-orange-900/30 shadow-lg">
+    <div class="container mx-auto px-4 sm:px-6 py-2.5">
+        <div class="flex items-center justify-between gap-4">
+            
+            {{-- Area Logo --}}
+            <a href="/" class="flex items-center gap-3 shrink-0 group transition-transform active:scale-95">
+                <img src="{{ asset('img/logo-murazon.png') }}"
+                style="filter: brightness(0) saturate(100%) invert(1)" 
+                     alt="Murazon Logo" 
+                     class="h-10 md:h-14 w-auto drop-shadow-md">
+                
+               <div class="flex flex-col leading-tight">
+                    <span class="text-xl font-black tracking-tighter text-white italic">MURAZON</span>
+                    <span class="text-[10px] text-orange-200 font-bold uppercase tracking-widest">Premium Cookware</span>
+                </div>
             </a>
+            
+            {{-- Search Bar Tengah --}}
+            <div class="hidden md:flex flex-1 max-w-md mx-6">
+                <form action="/" method="GET" class="w-full relative group">
+                    <input type="text" 
+                           name="search" 
+                           value="{{ request('search') }}"
+                           placeholder="Cari produk Murazon..." 
+                           class="w-full bg-white/10 border border-white/20 rounded-2xl py-2.5 pl-11 pr-4 text-sm text-white placeholder:text-white/50 focus:bg-white focus:text-[#6B3005] focus:placeholder:text-gray-400 outline-none transition-all">
+                    <div class="absolute left-4 top-3 text-white/50 group-focus-within:text-orange-500">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                    </div>
+                </form>
+            </div>
+            
+            {{-- Action & Social Icons --}}
+            <div class="flex items-center gap-2 shrink-0">
+                
+                {{-- Social Media (Desktop) --}}
+                <div class="flex items-center gap-1 mr-2 border-r border-white/10 pr-2">
+                    <a href="#" class="p-1.5 text-orange-100 hover:text-white">
+                        <i class="fa-brands fa-instagram text-sm"></i>
+                    </a>
+                    <a href="#" class="p-1.5 text-orange-100 hover:text-white">
+                        <i class="fa-brands fa-facebook text-sm"></i>
+                    </a>
+                </div>
+                
+                
+                 {{-- Mobile Search Button --}}
+                <button onclick="toggleMobileSearch()" class="md:hidden p-2.5 bg-white/10 text-white rounded-xl border border-white/10">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+
+                {{-- Cart --}}
+                <a href="/cart" class="group relative flex items-center justify-center p-2.5 bg-white/10 hover:bg-orange-500 rounded-xl border border-white/10 transition-all active:scale-90">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
+                    <span id="cart-badge" class="{{ $cartCount > 0 ? '' : 'hidden' }} absolute -top-1.5 -right-1.5 bg-white text-[#6B3005] text-[10px] font-black min-w-5 h-5 flex items-center justify-center px-1 rounded-full shadow-md border-2 border-orange-500">
+                        {{ $cartCount }}
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        {{-- Mobile Search Bar --}}
+        <div id="mobile-search" class="hidden md:hidden mt-3 pb-2">
+            <form action="/" method="GET" class="relative">
+                <input type="text" 
+                       name="search" 
+                       value="{{ request('search') }}"
+                       placeholder="Cari produk Murazon..." 
+                       class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm outline-none">
+                <div class="absolute left-4 top-3.5 text-gray-400">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </div>
+            </form>
         </div>
     </div>
 </nav>
@@ -81,15 +124,15 @@
 </main>
 
 {{-- Footer --}}
-<footer class="bg-white border-t border-gray-100 py-10 mt-20">
+<footer class="bg-white border-t border-gray-100 py-12 mt-20">
     <div class="container mx-auto px-4 text-center">
+        <img src="{{ asset('img/logo-murazon.png') }}" alt="Logo" class="h-8 mx-auto mb-6 grayscale opacity-50">
         <div class="flex justify-center gap-6 mb-6 text-gray-400">
+            <a href="#" class="hover:text-orange-600 transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a>
             <a href="#" class="hover:text-blue-600 transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a>
-            <a href="#" class="hover:text-pink-600 transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a>
-            <a href="#" class="hover:text-red-600 transition-colors"><i data-lucide="youtube" class="w-5 h-5"></i></a>
         </div>
-        <p class="text-xs text-gray-400 font-medium uppercase tracking-widest">
-            &copy; 2026 Santo Cookware • High Quality Kitchenware
+        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+            &copy; 2026 Murazon • Kualitas Premium Perlengkapan Dapur
         </p>
     </div>
 </footer>
@@ -102,32 +145,27 @@
                 <div class="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
                 <div class="absolute inset-0 w-2 h-2 bg-green-500 rounded-full"></div>
             </div>
-            <p class="text-sm font-bold text-slate-700 whitespace-nowrap">Ada pertanyaan? Chat Pak Santo 👋</p>
+            <p class="text-sm font-bold text-slate-700 whitespace-nowrap">Tanya Stok ke Pak Santo? 👋</p>
         </div>
         <div class="w-3 h-3 bg-white border-r border-b border-gray-100 rotate-45 absolute -bottom-1.5 right-6 shadow-sm"></div>
     </div>
     
-    <a href="https://wa.me/6282285455631?text=Halo%20Santo%20Cookware,%20saya%20ingin%20tanya..." 
+    <a href="https://wa.me/6282285455631?text=Halo%20Murazon,%20saya%20ingin%20tanya..." 
        target="_blank"
        class="relative flex items-center justify-center w-16 h-16 rounded-3xl shadow-[0_20px_50px_rgba(34,197,94,0.3)] transition-all duration-500 hover:scale-110 active:scale-95 overflow-hidden">
-        
-        <div class="absolute inset-0 bg-gradient-to-tr from-green-600 to-green-400 group-hover:from-green-500 group-hover:to-emerald-400 transition-all"></div>
-        <div class="absolute inset-0 rounded-full bg-white opacity-20 animate-ping group-hover:animate-none"></div>
-
-        <i class="fab fa-whatsapp relative text-4xl text-white group-hover:rotate-12 transition-transform duration-300"></i>
+        <div class="absolute inset-0 bg-gradient-to-tr from-green-600 to-green-400"></div>
+        <i class="fab fa-whatsapp relative text-4xl text-white"></i>
     </a>
 </div>
 
 @stack('scripts')
-
 <script>
-    // Initialize Icons
     lucide.createIcons();
-
-    window.refreshIcons = () => {
-        lucide.createIcons();
-    };
+    window.refreshIcons = () => { lucide.createIcons(); };
+    function toggleMobileSearch() {
+        const searchBar = document.getElementById('mobile-search');
+        searchBar.classList.toggle('hidden');
+    }
 </script>
-
 </body>
 </html>

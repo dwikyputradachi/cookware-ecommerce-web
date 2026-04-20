@@ -3,13 +3,29 @@
 @section('title', 'Keranjang - Santo Cookware')
 
 @section('content')
+<style>
+    :root {
+        --color-primary: #6B3005;    /* Cokelat Tua */
+        --color-secondary: #E1700F;  /* Oranye Murazon */
+        --color-accent-soft: #fff7ed; 
+    }
+
+    /* Override utility classes untuk warna Murazon */
+    .bg-murazon-primary { background-color: var(--color-primary); }
+    .bg-murazon-secondary { background-color: var(--color-secondary); }
+    .text-murazon-primary { color: var(--color-primary); }
+    .text-murazon-secondary { color: var(--color-secondary); }
+    .border-murazon-primary { border-color: var(--color-primary); }
+</style>
+
 <div class="container mx-auto px-4 py-8 max-w-5xl">
     <div class="grid md:grid-cols-3 gap-8">
         
+        {{-- List Produk --}}
         <div class="md:col-span-2 space-y-4">
             <div class="flex items-center justify-between mb-2">
-                <h1 class="text-2xl font-bold text-gray-800 tracking-tight">Keranjang Belanja</h1>
-                <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium">
+                <h1 class="text-2xl font-bold text-[#1E293B] tracking-tight">Keranjang Belanja</h1>
+                <span class="text-sm text-orange-800 bg-orange-50 px-3 py-1 rounded-full font-medium border border-orange-100">
                     <span id="total-qty-top">{{ collect($cart)->sum('quantity') }}</span> Produk
                 </span>
             </div>
@@ -19,7 +35,7 @@
                 <div id="item-{{ $id }}" class="bg-white rounded-3xl border border-gray-100 p-5 flex gap-5 shadow-sm hover:shadow-md transition-shadow">
                     <div class="relative">
                         <img src="{{ $item['image'] ?? 'https://via.placeholder.com/100' }}"
-                             class="w-24 h-24 object-cover rounded-2xl shadow-inner">
+                             class="w-24 h-24 object-cover rounded-2xl shadow-inner border border-gray-50">
                         @if(!($item['is_cod_available'] ?? true))
                             <span class="absolute -top-2 -left-2 bg-gray-800 text-white text-[9px] font-bold px-2 py-1 rounded-lg">NON-COD</span>
                         @endif
@@ -27,17 +43,17 @@
 
                     <div class="flex-1 flex flex-col justify-between">
                         <div>
-                            <h2 class="font-bold text-gray-800 text-base leading-tight">{{ $item['name'] }}</h2>
-                            <p class="text-blue-600 font-extrabold mt-1">Rp {{ number_format($item['price']) }}</p>
+                            <h2 class="font-bold text-[#6B3005] text-base leading-tight">{{ $item['name'] }}</h2>
+                            <p class="text-[#E1700F] font-extrabold mt-1">Rp {{ number_format($item['price']) }}</p>
                         </div>
                         
                         <div class="flex items-center justify-between mt-3">
-                            <div class="flex items-center gap-3 bg-gray-50 p-1 rounded-xl border border-gray-100">
+                            <div class="flex items-center gap-3 bg-orange-50/50 p-1 rounded-xl border border-orange-100">
                                 <button onclick="updateCart('{{ $id }}', 'minus')"
-                                    class="w-8 h-8 bg-white hover:bg-gray-100 shadow-sm rounded-lg flex items-center justify-center transition active:scale-90 font-bold text-gray-600">−</button>
-                                <span id="qty-{{ $id }}" class="text-sm font-bold w-6 text-center text-gray-700">{{ $item['quantity'] }}</span>
+                                    class="w-8 h-8 bg-white hover:bg-orange-100 shadow-sm rounded-lg flex items-center justify-center transition active:scale-90 font-bold text-[#6B3005]">−</button>
+                                <span id="qty-{{ $id }}" class="text-sm font-bold w-6 text-center text-[#6B3005]">{{ $item['quantity'] }}</span>
                                 <button onclick="updateCart('{{ $id }}', 'plus')"
-                                    class="w-8 h-8 bg-white hover:bg-gray-100 shadow-sm rounded-lg flex items-center justify-center transition active:scale-90 font-bold text-gray-600">+</button>
+                                    class="w-8 h-8 bg-white hover:bg-orange-100 shadow-sm rounded-lg flex items-center justify-center transition active:scale-90 font-bold text-[#6B3005]">+</button>
                             </div>
 
                             <button onclick="removeCart('{{ $id }}')"
@@ -48,13 +64,13 @@
                     </div>
                 </div>
                 @empty
-                <div id="empty-state" class="bg-white rounded-[2.5rem] p-16 text-center border border-dashed border-gray-200">
-                    <div class="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="shopping-basket" class="w-10 h-10 text-gray-300"></i>
+                <div id="empty-state" class="bg-white rounded-[2.5rem] p-16 text-center border border-dashed border-orange-200">
+                    <div class="bg-orange-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="shopping-basket" class="w-10 h-10 text-orange-300"></i>
                     </div>
-                    <h3 class="text-gray-800 font-bold text-lg">Wah, keranjang kosong!</h3>
-                    <p class="text-gray-400 text-sm mt-1">Yuk, isi dengan alat masak berkualitas.</p>
-                    <a href="/" class="mt-6 inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition">
+                    <h3 class="text-[#6B3005] font-bold text-lg">Wah, keranjang kosong!</h3>
+                    <p class="text-gray-400 text-sm mt-1">Yuk, isi dengan alat masak berkualitas Murazon.</p>
+                    <a href="/" class="mt-6 inline-flex items-center gap-2 bg-[#E1700F] text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-orange-200 hover:bg-[#6B3005] transition">
                         Mulai Belanja <i data-lucide="arrow-right" class="w-4 h-4"></i>
                     </a>
                 </div>
@@ -62,38 +78,39 @@
             </div>
         </div>
 
+        {{-- Sidebar Checkout --}}
         <div class="space-y-6">
             <div class="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm sticky top-24">
-                <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <i data-lucide="credit-card" class="w-5 h-5 text-blue-600"></i> Ringkasan & Bayar
+                <h2 class="text-lg font-bold text-[#6B3005] mb-6 flex items-center gap-2">
+                    <i data-lucide="credit-card" class="w-5 h-5 text-[#E1700F]"></i> Ringkasan & Bayar
                 </h2>
                 
                 <div class="flex justify-between text-sm text-gray-500 mb-6">
                     <span>Total Harga (<span id="total-qty">{{ collect($cart)->sum('quantity') }}</span> barang)</span>
-                    <span id="total-price" class="font-bold text-gray-800 text-base">Rp {{ number_format(collect($cart)->sum(fn($i) => $i['price'] * $i['quantity'])) }}</span>
+                    <span id="total-price" class="font-bold text-[#6B3005] text-base">Rp {{ number_format(collect($cart)->sum(fn($i) => $i['price'] * $i['quantity'])) }}</span>
                 </div>
 
                 <div class="space-y-3 mb-6">
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Data Pengiriman</p>
-                    <input type="text" id="cust_name" placeholder="Nama Lengkap" class="w-full p-3 rounded-xl border border-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                    <input type="number" id="cust_phone" placeholder="Nomor WhatsApp (08xxx)" class="w-full p-3 rounded-xl border border-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                    <textarea id="cust_address" placeholder="Alamat Lengkap" class="w-full p-3 rounded-xl border border-gray-100 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"></textarea>
+                    <input type="text" id="cust_name" placeholder="Nama Lengkap" class="w-full p-3 rounded-xl border border-gray-100 text-sm focus:ring-2 focus:ring-[#E1700F] outline-none transition-all bg-gray-50/30">
+                    <input type="number" id="cust_phone" placeholder="Nomor WhatsApp (08xxx)" class="w-full p-3 rounded-xl border border-gray-100 text-sm focus:ring-2 focus:ring-[#E1700F] outline-none transition-all bg-gray-50/30">
+                    <textarea id="cust_address" placeholder="Alamat Lengkap" class="w-full p-3 rounded-xl border border-gray-100 text-sm focus:ring-2 focus:ring-[#E1700F] outline-none transition-all bg-gray-50/30"></textarea>
                 </div>
 
                 <div class="pt-4 border-t border-gray-100 mb-6">
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Pilih Metode Pembayaran</p>
                     <div class="grid grid-cols-1 gap-2">
-                        <button onclick="selectPayment('bank')" class="payment-opt flex items-center justify-between p-3 rounded-2xl border-2 border-gray-50 hover:border-blue-200 transition text-left group">
+                        <button onclick="selectPayment('bank')" class="payment-opt flex items-center justify-between p-3 rounded-2xl border-2 border-gray-50 hover:border-orange-200 transition text-left group">
                             <div class="flex items-center gap-3">
-                                <div class="p-2 bg-blue-50 rounded-xl group-hover:bg-blue-100 transition"><i data-lucide="landmark" class="w-5 h-5 text-blue-600"></i></div>
+                                <div class="p-2 bg-orange-50 rounded-xl group-hover:bg-orange-100 transition"><i data-lucide="landmark" class="w-5 h-5 text-[#6B3005]"></i></div>
                                 <span class="text-sm font-bold text-gray-700">Transfer Bank</span>
                             </div>
                             <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
                         </button>
 
-                        <button onclick="selectPayment('ewallet')" class="payment-opt flex items-center justify-between p-3 rounded-2xl border-2 border-gray-50 hover:border-purple-200 transition text-left group">
+                        <button onclick="selectPayment('ewallet')" class="payment-opt flex items-center justify-between p-3 rounded-2xl border-2 border-gray-50 hover:border-orange-200 transition text-left group">
                             <div class="flex items-center gap-3">
-                                <div class="p-2 bg-purple-50 rounded-xl group-hover:bg-purple-100 transition"><i data-lucide="smartphone" class="w-5 h-5 text-purple-600"></i></div>
+                                <div class="p-2 bg-orange-50 rounded-xl group-hover:bg-orange-100 transition"><i data-lucide="smartphone" class="w-5 h-5 text-[#6B3005]"></i></div>
                                 <span class="text-sm font-bold text-gray-700">DANA / E-Wallet</span>
                             </div>
                             <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
@@ -101,19 +118,17 @@
 
                         <button onclick="selectPayment('qris')" class="payment-opt flex items-center justify-between p-3 rounded-2xl border-2 border-gray-50 hover:border-red-200 transition text-left group">
                             <div class="flex items-center gap-3">
-                                <div class="p-2 bg-red-50 rounded-xl group-hover:bg-red-100 transition"><i data-lucide="qr-code" class="w-5 h-5 text-red-600"></i></div>
+                                <div class="p-2 bg-red-50 rounded-xl group-hover:bg-orange-100 transition"><i data-lucide="qr-code" class="w-5 h-5 text-[#6B3005]"></i></div>
                                 <span class="text-sm font-bold text-gray-700">QRIS / VA Manual</span>
                             </div>
                             <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
                         </button>
 
-                        @php
-                            $canCod = collect($cart)->every(fn($i) => ($i['is_cod_available'] ?? true) == true);
-                        @endphp
+                        @php $canCod = collect($cart)->every(fn($i) => ($i['is_cod_available'] ?? true) == true); @endphp
                         <div id="cod-container" class="{{ ($canCod && count($cart) > 0) ? '' : 'hidden' }}">
-                            <button onclick="selectPayment('cod')" class="payment-opt flex items-center justify-between p-3 rounded-2xl border-2 border-gray-50 hover:border-green-200 transition text-left group w-full">
+                            <button onclick="selectPayment('cod')" class="payment-opt flex items-center justify-between p-3 rounded-2xl border-2 border-gray-50 hover:border-orange-200 transition text-left group w-full">
                                 <div class="flex items-center gap-3">
-                                    <div class="p-2 bg-green-50 rounded-xl group-hover:bg-green-100 transition"><i data-lucide="truck" class="w-5 h-5 text-green-600"></i></div>
+                                    <div class="p-2 bg-orange-50 rounded-xl group-hover:bg-orange-100 transition"><i data-lucide="truck" class="w-5 h-5 text-[#6B3005]"></i></div>
                                     <span class="text-sm font-bold text-gray-700">Bayar di Tempat (COD)</span>
                                 </div>
                                 <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
@@ -122,31 +137,31 @@
                     </div>
                 </div>
 
-                <div id="payment-info" class="hidden mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                    <p id="payment-title" class="text-[10px] font-bold text-blue-500 uppercase mb-2"></p>
+                <div id="payment-info" class="hidden mb-6 p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                    <p id="payment-title" class="text-[10px] font-bold text-[#E1700F] uppercase mb-2"></p>
                     <div class="flex items-center justify-between mb-4">
                         <div>
-                            <p id="acc-number" class="text-lg font-black text-blue-900 tracking-wider"></p>
-                            <p class="text-[10px] text-blue-400 font-medium italic uppercase tracking-tighter">A/N SANTO COOKWARE</p>
+                            <p id="acc-number" class="text-lg font-black text-[#6B3005] tracking-wider"></p>
+                            <p class="text-[10px] text-orange-400 font-medium italic uppercase tracking-tighter">A/N MURAZON COOKWARE</p>
                         </div>
-                        <button onclick="copyAcc()" class="p-2 bg-white rounded-lg shadow-sm text-blue-600 active:scale-90 transition">
+                        <button onclick="copyAcc()" class="p-2 bg-white rounded-lg shadow-sm text-[#E1700F] active:scale-90 transition border border-orange-100">
                             <i data-lucide="copy" class="w-4 h-4"></i>
                         </button>
                     </div>
 
-                    <div id="proof-container" class="mt-4 pt-4 border-t border-blue-100/50">
-                        <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">Upload Bukti Transfer</p>
+                    <div id="proof-container" class="mt-4 pt-4 border-t border-orange-200/50">
+                        <p class="text-[10px] font-bold text-orange-400 uppercase tracking-widest mb-2">Upload Bukti Transfer</p>
                         <div class="relative group">
                             <input type="file" id="payment_proof" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                            <div class="border-2 border-dashed border-blue-200 rounded-xl p-3 text-center group-hover:bg-blue-100/50 transition bg-white/50">
-                                <i data-lucide="upload-cloud" class="w-5 h-5 text-blue-400 mx-auto mb-1"></i>
-                                <p id="file-name" class="text-[10px] text-blue-500 font-bold truncate">Klik untuk pilih gambar</p>
+                            <div class="border-2 border-dashed border-orange-200 rounded-xl p-3 text-center group-hover:bg-orange-100/50 transition bg-white/50">
+                                <i data-lucide="upload-cloud" class="w-5 h-5 text-orange-400 mx-auto mb-1"></i>
+                                <p id="file-name" class="text-[10px] text-orange-500 font-bold truncate">Klik untuk pilih gambar</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <button onclick="checkout()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-3xl font-bold shadow-xl shadow-blue-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                <button onclick="checkout()" class="w-full bg-[#E1700F] hover:bg-[#6B3005] text-white py-4 rounded-3xl font-bold shadow-xl shadow-orange-100 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
                     Konfirmasi & Pesan via WA <i data-lucide="arrow-right" class="w-5 h-5"></i>
                 </button>
             </div>

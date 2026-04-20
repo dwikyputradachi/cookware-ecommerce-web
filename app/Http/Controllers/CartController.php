@@ -182,7 +182,7 @@ class CartController extends Controller
                     'status_text' => ($order->payment_method == 'cod') ? 'Menunggu Pengiriman (COD)' : 'Sudah Bayar (Verifikasi Admin)'
                 ]
             ]);
-
+        
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
