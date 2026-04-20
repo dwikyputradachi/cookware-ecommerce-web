@@ -116,6 +116,20 @@ class CartController extends Controller
                 ], 400);
             }
 
+            // Validasi COD: Jika memilih COD, semua produk harus memiliki is_cod_available = true
+            if ($request->payment_method === 'cod') {
+                $allCodAvailable = collect($cart)->every(function($item) {
+                    return ($item['is_cod_available'] ?? true) == true;
+                });
+
+                if (!$allCodAvailable) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'Maaf, beberapa produk di keranjang tidak tersedia untuk pembayaran COD. Silakan gunakan metode pembayaran lain.'
+                    ], 400);
+                }
+            }
+
             // Susun string produk untuk WhatsApp
             $itemDetails = [];
             foreach ($cart as $item) {
