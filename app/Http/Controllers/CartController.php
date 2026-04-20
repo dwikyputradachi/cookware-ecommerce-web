@@ -6,27 +6,21 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
-    /**
-     * Menampilkan Halaman Keranjang
-     */
     public function index()
     {
         $cart = session()->get('cart', []);
         return view('cart.index', compact('cart'));
     }
 
-    /**
-     * Tambah Produk ke Keranjang
-     */
     public function add(Request $request, $id)
     {
         $product = Product::findOrFail($id);
         $cart = session()->get('cart', []);
 
-        // 1. Cek Stok (Mencegah beli barang melebihi stok yang ada)
         $currentQtyInCart = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
         if ($product->stock <= $currentQtyInCart) {
             return back()->with('error', 'Maaf, stok tidak mencukupi!');
@@ -46,11 +40,9 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        if ($request->input('redirect') === 'cart') {
-            return redirect('/cart');
-        }   
-        
-        return back()->with('success', 'Produk berhasil ditambahkan!');
+        return $request->input('redirect') === 'cart' 
+            ? redirect('/cart') 
+            : back()->with('success', 'Produk berhasil ditambahkan!');
     }
 
     public function update(Request $request, $id)
@@ -62,7 +54,6 @@ class CartController extends Controller
             $action = $data['action'] ?? null;
 
             if ($action == 'plus') {
-                // Opsional: Tambahkan cek stok juga di sini agar tidak tembus via tombol +
                 $product = Product::find($id);
                 if ($product && $product->stock > $cart[$id]['quantity']) {
                     $cart[$id]['quantity']++;
@@ -81,61 +72,43 @@ class CartController extends Controller
             session()->put('cart', $cart);
         }
 
-        return response()->json([
-            'success' => true,
-            'cart' => $cart
-        ]);
+        return response()->json(['success' => true, 'cart' => $cart]);
     }
+
     public function remove($id)
     {
         $cart = session()->get('cart', []);
-
         if (isset($cart[$id])) {
             unset($cart[$id]);
             session()->put('cart', $cart);
         }
-
-        return response()->json([
-            'success' => true,
-            'cart' => $cart
-        ]);
+        return response()->json(['success' => true, 'cart' => $cart]);
     }
 
-    /**
-     * Proses Checkout & Potong Stok
-     */
     public function checkout(Request $request)
     {
-        try {
+        // Gunakan Database Transaction supaya kalau simpan detail gagal, order tidak menggantung
+        return DB::transaction(function () use ($request) {
             $cart = session()->get('cart', []);
 
             if (empty($cart)) {
-                return response()->json([
-                    'success' => false, 
-                    'error' => 'Keranjang kosong atau session telah habis.'
-                ], 400);
+                return response()->json(['success' => false, 'error' => 'Keranjang kosong.'], 400);
             }
 
-            // Susun string produk untuk WhatsApp
             $itemDetails = [];
             foreach ($cart as $item) {
                 $itemDetails[] = $item['name'] . " (" . $item['quantity'] . "x)";
             }
             $itemsString = implode(", ", $itemDetails);
 
-            // Hitung total harga di server
-            $totalPriceServer = collect($cart)->sum(function($item) {
-                return $item['price'] * $item['quantity'];
-            });
+            $totalPriceServer = collect($cart)->sum(fn($item) => $item['price'] * $item['quantity']);
 
-            // Handle Bukti Pembayaran
             $proofPath = null;
             if ($request->hasFile('payment_proof')) {
-                $path = $request->file('payment_proof')->store('proofs', 'public'); 
-                $proofPath = 'storage/' . $path;
+                // Simpan path relatif: proofs/filename.jpg
+                $proofPath = $request->file('payment_proof')->store('proofs', 'public'); 
             }
 
-            // 1. Simpan Data Order
             $order = Order::create([
                 'customer_name'    => $request->name,
                 'customer_phone'   => $request->phone,
@@ -146,7 +119,6 @@ class CartController extends Controller
                 'payment_proof'    => $proofPath,
             ]);
 
-            // 2. Simpan Detail Item & Potong Stok
             foreach ($cart as $id => $item) {
                 OrderItem::create([
                     'order_id'   => $order->id,
@@ -155,10 +127,9 @@ class CartController extends Controller
                     'price'      => $item['price'],
                 ]);
             
-                $product = Product::find($id); // Gunakan Product::find
+                $product = Product::lockForUpdate()->find($id); 
                 if ($product) {
                     if ($product->stock >= $item['quantity']) {
-                        // FIX TYPO: tadi kamu tulis $itemDetails['quantity'], harusnya $item['quantity']
                         $product->decrement('stock', $item['quantity']);
                     } else {
                         throw new \Exception("Stok produk {$product->name} tidak mencukupi.");
@@ -166,7 +137,6 @@ class CartController extends Controller
                 }
             }
 
-            // 3. Bersihkan Keranjang
             session()->forget('cart');
 
             return response()->json([
@@ -178,13 +148,10 @@ class CartController extends Controller
                     'phone' => $order->customer_phone,
                     'address' => $order->customer_address,
                     'total_price' => number_format($order->total_price, 0, ',', '.'),
-                    'payment_method' => $order->payment_method,
-                    'status_text' => ($order->payment_method == 'cod') ? 'Menunggu Pengiriman (COD)' : 'Sudah Bayar (Verifikasi Admin)'
+                    'payment_method' => strtoupper($order->payment_method),
+                    'status_text' => ($order->payment_method == 'cod') ? 'Menunggu Pengiriman (COD)' : 'Menunggu Verifikasi Pembayaran'
                 ]
             ]);
-        
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
-        }
+        });
     }
 }

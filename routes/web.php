@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\AdminController;
 
+
 Route::get('/', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 
@@ -27,5 +28,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/{product}/edit', [AdminController::class, 'editProduct'])->name('edit');
         Route::put('/{product}', [AdminController::class, 'updateProduct'])->name('update');
         Route::delete('/{product}', [AdminController::class, 'destroyProduct'])->name('destroy');
-    });
+    
+});
 });

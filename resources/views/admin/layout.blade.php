@@ -9,8 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<script src="https://unpkg.com/lucide@latest" crossorigin="anonymous"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
@@ -103,7 +105,7 @@
     <div class="admin-sidebar">
         <div class="p-6 border-b border-blue-400/30">
             <h1 class="text-white text-xl font-bold">Admin Panel</h1>
-            <p class="text-blue-200 text-xs mt-1">Santo Cookware</p>
+            <p class="text-blue-200 text-xs mt-1">Murazon</p>
         </div>
 
         <nav class="mt-6">

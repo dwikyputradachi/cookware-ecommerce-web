@@ -8,48 +8,57 @@ use App\Models\Banner;
 
 class ProductController extends Controller
 {
+    /**
+     * Menampilkan Katalog Produk
+     */
     public function index(Request $request)
     {
-        $query = Product::query();
+        // 1. Ambil Banner yang aktif
+        $banners = Banner::where('is_active', true)
+                         ->orderBy('sort_order')
+                         ->get();
 
-    if ($request->filled('search')) {
-        $query->where('name', 'like', '%' . $request->search . '%')
-              ->orWhere('description', 'like', '%' . $request->search . '%');
-    }
-
-    if ($request->filled('category')) {
-        $query->where('category', $request->category);
-    }
-
-    $products = $query->latest()->get();
-
-        $banners = \App\Models\Banner::where('is_active', true)->orderBy('sort_order')->get();
-        $categoryNames = \App\Models\Product::distinct()->pluck('category')->filter();
+        // 2. Ambil Kategori unik untuk filter tab
+        $categoryNames = Product::distinct()->pluck('category')->filter();
 
         $categories = $categoryNames->map(function($name) {
             return [
                 'name' => $name,
-                //Format file: misal "rice-cooker" ganti jadi ini ya "rice-cooker.png"
+                // Pastikan file ini ada di public/images/categories/nama-kategori.png
                 'img' => strtolower(str_replace(' ', '-', $name)) . '.png' 
             ];
         });
 
-        $query = \App\Models\Product::query();
+        // 3. Bangun Query Produk
+        $query = Product::query();
+
+        // Filter Berdasarkan Search (Cek Nama & Deskripsi)
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('description', 'like', '%' . $searchTerm . '%');
+            });
         }
 
+        // Filter Berdasarkan Kategori
         if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
 
+        // Eksekusi query
         $products = $query->latest()->get();
 
         return view('products.index', compact('products', 'categories', 'banners'));
     }
+    
+    /**
+     * Menampilkan Detail Produk
+     */
     public function show($id)
     {
         $product = Product::findOrFail($id);
         return view('products.show', compact('product'));
     }
+    
 }

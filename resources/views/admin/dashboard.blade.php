@@ -74,6 +74,7 @@
     </div>
 
     {{-- Quick Actions --}}
+    
     <div class="mt-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div class="flex gap-4">

@@ -13,7 +13,6 @@
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
@@ -148,6 +147,7 @@
 </div>
 
 @stack('scripts')
+
 <script>
     lucide.createIcons();
     window.refreshIcons = () => { lucide.createIcons(); };
@@ -159,5 +159,6 @@
         }
     }
 </script>
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
