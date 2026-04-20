@@ -22,11 +22,12 @@
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             -webkit-font-smoothing: antialiased; 
+            overflow-x: hidden; /* Mencegah layar goyang ke samping */
+            width: 100%;
         }
         
-        /* Kembali ke Cokelat Murazon Signature */
         .nav-glass {
-            background: rgba(107, 48, 5, 0.96); /* Cokelat Tua */
+            background: rgba(107, 48, 5, 0.96);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
@@ -44,24 +45,24 @@
 
 {{-- Navbar --}}
 <nav class="nav-glass sticky top-0 z-50 border-b border-orange-900/30 shadow-lg">
-    <div class="container mx-auto px-4 sm:px-6 py-2.5">
-        <div class="flex items-center justify-between gap-4">
+    <div class="container mx-auto px-3 sm:px-6 py-2.5">
+        <div class="flex items-center justify-between gap-2 md:gap-4">
             
             {{-- Area Logo --}}
-            <a href="/" class="flex items-center gap-3 shrink-0 group transition-transform active:scale-95">
+            <a href="/" class="flex items-center gap-2 sm:gap-3 shrink-0 group transition-transform active:scale-95">
                 <img src="{{ asset('img/logo-murazon.png') }}"
-                style="filter: brightness(0) saturate(100%) invert(1)" 
+                     style="filter: brightness(0) saturate(100%) invert(1)" 
                      alt="Murazon Logo" 
-                     class="h-10 md:h-14 w-auto drop-shadow-md">
+                     class="h-9 md:h-14 w-auto drop-shadow-md">
                 
-               <div class="flex flex-col leading-tight">
-                    <span class="text-xl font-black tracking-tighter text-white italic">MURAZON</span>
-                    <span class="text-[10px] text-orange-200 font-bold uppercase tracking-widest">Premium Cookware</span>
+               <div class="flex flex-col leading-tight hidden xs:flex">
+                    <span class="text-lg md:text-xl font-black tracking-tighter text-white italic">MURAZON</span>
+                    <span class="text-[8px] md:text-[10px] text-orange-200 font-bold uppercase tracking-widest leading-none">Premium Cookware</span>
                 </div>
             </a>
             
-            {{-- Search Bar Tengah --}}
-            <div class="hidden md:flex flex-1 max-w-md mx-6">
+            {{-- Search Bar Tengah (Hanya Desktop) --}}
+            <div class="hidden md:flex flex-1 max-w-md mx-4">
                 <form action="/" method="GET" class="w-full relative group">
                     <input type="text" 
                            name="search" 
@@ -74,27 +75,26 @@
                 </form>
             </div>
             
-            {{-- Action & Social Icons --}}
-            <div class="flex items-center gap-2 shrink-0">
+            {{-- Action Buttons --}}
+            <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
                 
-                {{-- Social Media (Desktop) --}}
-                <div class="flex items-center gap-1 mr-2 border-r border-white/10 pr-2">
-                    <a href="#" class="p-1.5 text-orange-100 hover:text-white">
+                {{-- Medsos (Disembunyikan di layar super kecil biar ga sempit) --}}
+                <div class="hidden sm:flex items-center gap-1 border-r border-white/10 pr-2">
+                    <a href="#" class="p-1.5 text-orange-100 hover:text-white transition-colors">
                         <i class="fa-brands fa-instagram text-sm"></i>
                     </a>
-                    <a href="#" class="p-1.5 text-orange-100 hover:text-white">
+                    <a href="#" class="p-1.5 text-orange-100 hover:text-white transition-colors">
                         <i class="fa-brands fa-facebook text-sm"></i>
                     </a>
                 </div>
                 
-                
-                 {{-- Mobile Search Button --}}
-                <button onclick="toggleMobileSearch()" class="md:hidden p-2.5 bg-white/10 text-white rounded-xl border border-white/10">
+                 {{-- Tombol Search Mobile --}}
+                <button onclick="toggleMobileSearch()" class="md:hidden p-2 bg-white/10 text-white rounded-xl border border-white/10 active:bg-orange-500 transition-all">
                     <i data-lucide="search" class="w-5 h-5"></i>
                 </button>
 
                 {{-- Cart --}}
-                <a href="/cart" class="group relative flex items-center justify-center p-2.5 bg-white/10 hover:bg-orange-500 rounded-xl border border-white/10 transition-all active:scale-90">
+                <a href="/cart" class="group relative flex items-center justify-center p-2 bg-white/10 hover:bg-orange-500 rounded-xl border border-white/10 transition-all active:scale-90">
                     <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
                     <span id="cart-badge" class="{{ $cartCount > 0 ? '' : 'hidden' }} absolute -top-1.5 -right-1.5 bg-white text-[#6B3005] text-[10px] font-black min-w-5 h-5 flex items-center justify-center px-1 rounded-full shadow-md border-2 border-orange-500">
                         {{ $cartCount }}
@@ -103,14 +103,14 @@
             </div>
         </div>
 
-        {{-- Mobile Search Bar --}}
+        {{-- Mobile Search Dropdown --}}
         <div id="mobile-search" class="hidden md:hidden mt-3 pb-2">
             <form action="/" method="GET" class="relative">
                 <input type="text" 
                        name="search" 
                        value="{{ request('search') }}"
                        placeholder="Cari produk Murazon..." 
-                       class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm outline-none">
+                       class="w-full bg-white border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-sm">
                 <div class="absolute left-4 top-3.5 text-gray-400">
                     <i data-lucide="search" class="w-5 h-5"></i>
                 </div>
@@ -128,8 +128,8 @@
     <div class="container mx-auto px-4 text-center">
         <img src="{{ asset('img/logo-murazon.png') }}" alt="Logo" class="h-8 mx-auto mb-6 grayscale opacity-50">
         <div class="flex justify-center gap-6 mb-6 text-gray-400">
-            <a href="#" class="hover:text-orange-600 transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a>
-            <a href="#" class="hover:text-blue-600 transition-colors"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+            <a href="#" class="hover:text-orange-600 transition-colors"><i class="fa-brands fa-instagram text-xl"></i></a>
+            <a href="#" class="hover:text-blue-600 transition-colors"><i class="fa-brands fa-facebook text-xl"></i></a>
         </div>
         <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
             &copy; 2026 Murazon • Kualitas Premium Perlengkapan Dapur
@@ -152,9 +152,9 @@
     
     <a href="https://wa.me/6282285455631?text=Halo%20Murazon,%20saya%20ingin%20tanya..." 
        target="_blank"
-       class="relative flex items-center justify-center w-16 h-16 rounded-3xl shadow-[0_20px_50px_rgba(34,197,94,0.3)] transition-all duration-500 hover:scale-110 active:scale-95 overflow-hidden">
+       class="relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(34,197,94,0.3)] transition-all duration-500 hover:scale-110 active:scale-95 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-tr from-green-600 to-green-400"></div>
-        <i class="fab fa-whatsapp relative text-4xl text-white"></i>
+        <i class="fab fa-whatsapp relative text-3xl sm:text-4xl text-white"></i>
     </a>
 </div>
 
@@ -165,6 +165,9 @@
     function toggleMobileSearch() {
         const searchBar = document.getElementById('mobile-search');
         searchBar.classList.toggle('hidden');
+        if(!searchBar.classList.contains('hidden')) {
+            searchBar.querySelector('input').focus();
+        }
     }
 </script>
 </body>
