@@ -11,6 +11,6 @@ class Banner extends Model
     'image', 
     'link', 
     'is_active', 
-    'sort_order' // Pastikan ini sort_order, bukan order
+    'sort_order' 
 ];
 }
