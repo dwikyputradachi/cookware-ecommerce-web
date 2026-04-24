@@ -8,31 +8,15 @@ use App\Models\Banner;
 
 class ProductController extends Controller
 {
-    /**
-     * Menampilkan Katalog Produk
-     */
     public function index(Request $request)
     {
-        // 1. Ambil Banner yang aktif
         $banners = Banner::where('is_active', true)
                          ->orderBy('sort_order')
                          ->get();
 
-        // 2. Ambil Kategori unik untuk filter tab
-        $categoryNames = Product::distinct()->pluck('category')->filter();
-
-        $categories = $categoryNames->map(function($name) {
-            return [
-                'name' => $name,
-                // Pastikan file ini ada di public/images/categories/nama-kategori.png
-                'img' => strtolower(str_replace(' ', '-', $name)) . '.png' 
-            ];
-        });
-
-        // 3. Bangun Query Produk
+        $categories = $this->getCategories();
         $query = Product::query();
 
-        // Filter Berdasarkan Search (Cek Nama & Deskripsi)
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
@@ -41,24 +25,39 @@ class ProductController extends Controller
             });
         }
 
-        // Filter Berdasarkan Kategori
-        if ($request->filled('category')) {
+        // Logic Baru: Filter dijalankan HANYA JIKA kategori bukan 'semua'
+        if ($request->filled('category') && $request->category !== 'semua') {
             $query->where('category', $request->category);
         }
 
-        // Eksekusi query
         $products = $query->latest()->get();
 
         return view('products.index', compact('products', 'categories', 'banners'));
     }
-    
-    /**
-     * Menampilkan Detail Produk
-     */
+
     public function show($id)
     {
         $product = Product::findOrFail($id);
-        return view('products.show', compact('product'));
+        $categories = $this->getCategories();
+        return view('products.show', compact('product', 'categories'));
     }
-    
+
+    private function getCategories()
+    {
+        // Ambil kategori unik dari database
+        $categoryNames = Product::distinct()->pluck('category')->filter();
+        
+        $mapped = $categoryNames->map(function($name) {
+            return [
+                'name' => $name,
+                'img' => strtolower(str_replace(' ', '-', $name)) . '.png' 
+            ];
+        });
+
+        // TAMBAHKAN INI: Masukkan kategori "Semua" di urutan paling atas
+        return $mapped->prepend([
+            'name' => 'Semua',
+            'img' => 'all-products.png' // Pastikan file gambar ini ada atau abaikan jika tidak pakai icon
+        ]);
+    }
 }

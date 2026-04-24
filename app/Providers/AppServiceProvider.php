@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL; // <--- Pastikan baris ini ada!
+use Illuminate\Support\Facades\View; // Tambahkan ini
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,9 +11,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Tambahkan blok kode ini
-        if (config('app.env') === 'production' || env('RAILWAY_ENVIRONMENT')) {
-            URL::forceScheme('https');
-        }
+        // Kode ini akan mengirim data $categories ke SEMUA halaman otomatis
+        View::composer('*', function ($view) {
+            $categories = [
+                ['name' => 'Semua'],
+                ['name' => 'Panci'],
+                ['name' => 'Wajan'],
+                ['name' => 'Spatula'],
+                ['name' => 'Pisau'],
+            ];
+            $view->with('categories', $categories);
+        });
     }
 }

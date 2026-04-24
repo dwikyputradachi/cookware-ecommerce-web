@@ -139,7 +139,13 @@
                     </p>
                 </div>
             </div>
-
+             {{-- Info Pengiriman (Mirip Erablue) --}}
+                    <div class="mt-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                        <p class="text-[11px] text-blue-800 font-bold flex items-center gap-2">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                            KONFIRMASI ALAMAT PENGIRIMAN UNTUK BIAYA DAN ESTIMASI WAKTU
+                        </p>
+                    </div>
             {{-- ACTION BUTTONS --}}
             @if($product->stock > 0)
             <div class="mt-10 flex flex-col sm:flex-row gap-4">

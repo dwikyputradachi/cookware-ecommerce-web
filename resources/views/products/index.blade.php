@@ -122,33 +122,10 @@
             
         </div>
     </div>
-    {{-- 2. KATEGORI --}}
-    <div class="container mx-auto px-4 mt-16">
-        <div class="mb-8 border-b border-gray-100 pb-4 flex items-center justify-between">
-            <h3 class="text-xl font-black text-gray-800 uppercase italic tracking-tight flex items-center gap-3">
-                <i data-lucide="layout-grid" class="w-5 h-5 text-[#E1700F]"></i>
-                Kategori Pilihan
-            </h3>
-        </div>
-
-        <div class="flex gap-5 overflow-x-auto no-scrollbar pb-6 snap-x">
-            @foreach($categories as $cat)
-            <a href="/?category={{ $cat['name'] }}" class="flex-none w-28 snap-start group text-center">
-                <div class="w-24 h-24 mx-auto rounded-[2rem] bg-white border-2 {{ request('category') == $cat['name'] ? 'border-[#E1700F] shadow-lg shadow-orange-100' : 'border-gray-100' }} flex items-center justify-center transition-all group-hover:border-orange-300 p-4 shadow-sm group-hover:shadow-md">
-                    <img src="{{ asset('img/categories/' . $cat['img']) }}" 
-                         class="w-full h-full object-contain group-hover:scale-105 transition-transform" 
-                         onerror="this.src='{{ asset('img/categories/default.png') }}'">
-                </div>
-                <span class="text-xs font-bold mt-3 block {{ request('category') == $cat['name'] ? 'text-[#E1700F]' : 'text-gray-600' }}">
-                    {{ $cat['name'] }}
-                </span>
-            </a>
-            @endforeach
-        </div>
-    </div>
+   
 
     {{-- 3. HOT ITEM --}}
-    <div class="container mx-auto px-4 mt-12">
+    <div class="container mx-auto px-4 mt-20">
         <div class="bg-white rounded-[2.5rem] p-8 md:p-10 border border-orange-100 shadow-sm relative overflow-hidden">
             {{-- Hiasan Pojok --}}
             <div class="absolute top-0 right-0 w-40 h-40 bg-red-50 rounded-bl-full opacity-60"></div>

@@ -10,18 +10,29 @@ use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
+    /**
+     * Menampilkan Halaman Keranjang
+     */
     public function index()
     {
         $cart = session()->get('cart', []);
-        return view('cart.index', compact('cart'));
+        
+        // Ambil kategori agar navbar tidak error (Undefined variable $categories)
+        $categories = $this->getCategories();
+
+        return view('cart.index', compact('cart', 'categories'));
     }
 
+    /**
+     * Menambah Produk ke Keranjang
+     */
     public function add(Request $request, $id)
     {
         $product = Product::findOrFail($id);
         $cart = session()->get('cart', []);
 
         $currentQtyInCart = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
+        
         if ($product->stock <= $currentQtyInCart) {
             return back()->with('error', 'Maaf, stok tidak mencukupi!');
         }
@@ -45,6 +56,9 @@ class CartController extends Controller
             : back()->with('success', 'Produk berhasil ditambahkan!');
     }
 
+    /**
+     * Update Quantity (Plus/Minus) via AJAX
+     */
     public function update(Request $request, $id)
     {
         $cart = session()->get('cart', []);
@@ -75,6 +89,9 @@ class CartController extends Controller
         return response()->json(['success' => true, 'cart' => $cart]);
     }
 
+    /**
+     * Menghapus Item dari Keranjang
+     */
     public function remove($id)
     {
         $cart = session()->get('cart', []);
@@ -85,9 +102,11 @@ class CartController extends Controller
         return response()->json(['success' => true, 'cart' => $cart]);
     }
 
+    /**
+     * Proses Checkout dan Simpan ke Database
+     */
     public function checkout(Request $request)
     {
-        // Gunakan Database Transaction supaya kalau simpan detail gagal, order tidak menggantung
         return DB::transaction(function () use ($request) {
             $cart = session()->get('cart', []);
 
@@ -105,10 +124,10 @@ class CartController extends Controller
 
             $proofPath = null;
             if ($request->hasFile('payment_proof')) {
-                // Simpan path relatif: proofs/filename.jpg
                 $proofPath = $request->file('payment_proof')->store('proofs', 'public'); 
             }
 
+            // Simpan Data Order
             $order = Order::create([
                 'customer_name'    => $request->name,
                 'customer_phone'   => $request->phone,
@@ -119,6 +138,7 @@ class CartController extends Controller
                 'payment_proof'    => $proofPath,
             ]);
 
+            // Simpan Detail Item & Kurangi Stok
             foreach ($cart as $id => $item) {
                 OrderItem::create([
                     'order_id'   => $order->id,
@@ -137,6 +157,7 @@ class CartController extends Controller
                 }
             }
 
+            // Bersihkan Keranjang
             session()->forget('cart');
 
             return response()->json([
@@ -153,5 +174,25 @@ class CartController extends Controller
                 ]
             ]);
         });
+    }
+
+    /**
+     * Helper untuk mengambil kategori (Navbar)
+     */
+    private function getCategories()
+    {
+        $categoryNames = Product::distinct()->pluck('category')->filter();
+        
+        $mapped = $categoryNames->map(function($name) {
+            return [
+                'name' => $name,
+                'img' => strtolower(str_replace(' ', '-', $name)) . '.png' 
+            ];
+        });
+
+        return $mapped->prepend([
+            'name' => 'Semua',
+            'img' => 'all-products.png'
+        ]);
     }
 }
