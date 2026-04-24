@@ -34,8 +34,8 @@
                 @forelse($cart as $id => $item)
                 <div id="item-{{ $id }}" class="bg-white rounded-3xl border border-gray-100 p-5 flex gap-5 shadow-sm hover:shadow-md transition-shadow">
                     <div class="relative">
-                        <img src="{{ $item['image'] ?? 'https://via.placeholder.com/100' }}"
-                             class="w-24 h-24 object-cover rounded-2xl shadow-inner border border-gray-50">
+                        <img src="{{ str_contains($item['image'], 'http') ? $item['image'] : asset('storage/' . $item['image']) }}"
+                         class="w-20 h-20 md:w-24 md:h-24 object-cover rounded-2xl shadow-inner border border-gray-50">
                         @if(!($item['is_cod_available'] ?? true))
                             <span class="absolute -top-2 -left-2 bg-gray-800 text-white text-[9px] font-bold px-2 py-1 rounded-lg">NON-COD</span>
                         @endif

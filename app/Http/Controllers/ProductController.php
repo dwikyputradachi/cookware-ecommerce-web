@@ -4,16 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
-use App\Models\Banner;
 
 class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $banners = Banner::where('is_active', true)
-                         ->orderBy('sort_order')
-                         ->get();
-
         $categories = $this->getCategories();
         $query = Product::query();
 

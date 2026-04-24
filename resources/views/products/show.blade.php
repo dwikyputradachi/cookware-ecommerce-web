@@ -13,6 +13,7 @@
                 $videoId = $match[1];
             }
         }
+        $totalSlides = $videoId ? 2 : 1;
     @endphp
 
     {{-- Breadcrumb --}}
@@ -28,29 +29,22 @@
         <div class="w-full md:w-1/2 relative bg-orange-50 p-4 md:p-6" 
              x-data="{ 
                 slide: 1, 
-                total: {{ $videoId ? 2 : 1 }},
-                autoplay: null,
-                init() {
-                    if(this.total > 1) { this.startAutoplay(); }
-                },
-                startAutoplay() {
-                    this.autoplay = setInterval(() => {
-                        this.slide = this.slide === this.total ? 1 : this.slide + 1;
-                    }, 6000); 
-                },
-                stopAutoplay() {
-                    if(this.autoplay) clearInterval(this.autoplay);
-                }
-             }"
-             @mouseenter="stopAutoplay()" 
-             @mouseleave="startAutoplay()">
+                total: {{ $totalSlides }},
+                next() { this.slide = this.slide === this.total ? 1 : this.slide + 1 },
+                prev() { this.slide = this.slide === 1 ? this.total : this.slide - 1 }
+             }">
             
             <div class="relative group overflow-hidden rounded-4xl shadow-inner border-4 border-white bg-white">
                 
-                <div class="relative h-87.5 md:h-110">
+                <div class="relative h-80 md:h-110">
                     
-                    {{-- IMAGE --}}
-                    <div x-show="slide === 1" class="absolute inset-0 w-full h-full">
+                    {{-- SLIDE 1: IMAGE --}}
+                    <div x-show="slide === 1" 
+                         x-cloak
+                         class="absolute inset-0 w-full h-full bg-white"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100">
                         @if($product->image)
                             <img src="{{ asset('storage/' . $product->image) }}" class="w-full h-full object-cover">
                         @else
@@ -62,39 +56,45 @@
                         @endif
                     </div>
 
-                    {{-- VIDEO --}}
+                    {{-- SLIDE 2: VIDEO --}}
                     @if($videoId)
-                    <div x-show="slide === 2" x-cloak class="absolute inset-0 bg-black">
+                    <div x-show="slide === 2" 
+                         x-cloak
+                         class="absolute inset-0 bg-black z-20"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100">
                         <iframe class="w-full h-full" 
-                                src="https://www.youtube.com/embed/{{ $videoId }}" 
+                                src="https://www.youtube.com/embed/{{ $videoId }}?enablejsapi=1&autoplay=0" 
                                 frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                 allowfullscreen>
                         </iframe>
                     </div>
                     @endif
                 </div>
 
-                {{-- NAV BUTTON --}}
+                {{-- NAV BUTTONS --}}
                 @if($videoId)
-                <button @click="slide = (slide === 1 ? 2 : 1)" 
-                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 text-[var(--color-secondary)] p-3 rounded-2xl shadow-xl z-30 border border-orange-100">
+                <button @click="prev()" 
+                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 text-[var(--color-secondary)] p-3 rounded-2xl shadow-xl z-30 border border-orange-100 hover:bg-white active:scale-90 transition-all">
                     <i data-lucide="chevron-left" class="w-6 h-6"></i>
                 </button>
 
-                <button @click="slide = (slide === 1 ? 2 : 1)" 
-                        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 text-[var(--color-secondary)] p-3 rounded-2xl shadow-xl z-30 border border-orange-100">
+                <button @click="next()" 
+                        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 text-[var(--color-secondary)] p-3 rounded-2xl shadow-xl z-30 border border-orange-100 hover:bg-white active:scale-90 transition-all">
                     <i data-lucide="chevron-right" class="w-6 h-6"></i>
                 </button>
 
                 {{-- INDICATOR --}}
                 <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-                    <div class="h-1.5 transition-all rounded-full" :class="slide === 1 ? 'w-8 bg-[var(--color-secondary)]' : 'w-2 bg-gray-300'"></div>
-                    <div class="h-1.5 transition-all rounded-full" :class="slide === 2 ? 'w-8 bg-[var(--color-secondary)]' : 'w-2 bg-gray-300'"></div>
+                    <button @click="slide = 1" class="h-1.5 transition-all rounded-full" :class="slide === 1 ? 'w-8 bg-[var(--color-secondary)]' : 'w-2 bg-gray-300'"></button>
+                    <button @click="slide = 2" class="h-1.5 transition-all rounded-full" :class="slide === 2 ? 'w-8 bg-[var(--color-secondary)]' : 'w-2 bg-gray-300'"></button>
                 </div>
                 @endif
             </div>
 
-            {{-- COD --}}
+            {{-- LABEL COD --}}
             @if($product->is_cod_available)
                 <div class="absolute top-10 left-10 bg-[var(--color-secondary)] text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 z-40">
                     <i data-lucide="truck" class="w-3 h-3"></i> BISA COD
@@ -102,7 +102,7 @@
             @endif
         </div>
 
-        {{-- DETAIL --}}
+        {{-- DETAIL SECTION --}}
         <div class="p-8 md:p-12 flex flex-col flex-1">
             <div class="flex-1">
                 <h1 class="text-3xl font-bold text-gray-900">{{ $product->name }}</h1>
@@ -139,15 +139,21 @@
                     </p>
                 </div>
             </div>
-
-            {{-- BUTTON --}}
+             {{-- Info Pengiriman (Mirip Erablue) --}}
+                    <div class="mt-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                        <p class="text-[11px] text-blue-800 font-bold flex items-center gap-2">
+                            <i data-lucide="info" class="w-4 h-4"></i>
+                            KONFIRMASI ALAMAT PENGIRIMAN UNTUK BIAYA DAN ESTIMASI WAKTU
+                        </p>
+                    </div>
+            {{-- ACTION BUTTONS --}}
             @if($product->stock > 0)
             <div class="mt-10 flex flex-col sm:flex-row gap-4">
                 
                 <form action="/cart/add/{{ $product->id }}" method="POST" class="flex-1">
                     @csrf
                     <input type="hidden" name="redirect" value="back">
-                    <button class="w-full flex items-center justify-center gap-2 border-2 border-(--color-secondary) text-(--color-secondary) hover:bg-orange-50 py-4 rounded-2xl font-bold transition-all">
+                    <button class="w-full flex items-center justify-center gap-2 border-2 border-[#E1700F] text-[#E1700F] hover:bg-orange-50 py-4 rounded-2xl font-bold transition-all">
                         <i data-lucide="shopping-cart" class="w-5 h-5"></i>
                         + Keranjang
                     </button>
@@ -156,7 +162,7 @@
                 <form action="/cart/add/{{ $product->id }}" method="POST" class="flex-[1.5]">
                     @csrf
                     <input type="hidden" name="redirect" value="cart">
-                    <button class="w-full flex items-center justify-center gap-2 bg-(--color-secondary) hover:brightness-110 text-white py-4 rounded-2xl font-bold shadow-[0_10px_30px_rgba(225,112,15,0.3)]">
+                    <button class="w-full flex items-center justify-center gap-2 bg-[#E1700F] hover:brightness-110 text-white py-4 rounded-2xl font-bold shadow-[0_10px_30px_rgba(225,112,15,0.3)]">
                         <i data-lucide="zap" class="w-5 h-5"></i>
                         Beli Sekarang
                     </button>
