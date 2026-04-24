@@ -27,7 +27,7 @@ class ProductController extends Controller
 
         $products = $query->latest()->get();
 
-        return view('products.index', compact('products', 'categories', 'banners'));
+        return view('products.index', compact('products', 'categories'));
     }
 
     public function show($id)
