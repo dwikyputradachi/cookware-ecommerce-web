@@ -7,157 +7,175 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
+        [x-cloak] { display: none !important; }
         html { scroll-behavior: smooth; }
-        
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            -webkit-font-smoothing: antialiased; 
-            overflow-x: hidden; /* Fix mutlak buat Android meluber */
-            width: 100%;
-            position: relative;
-        }
-        
-        .nav-glass {
-            background: rgba(107, 48, 5, 0.96);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        #cart-badge {
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; width: 100%; }
+        .nav-gradient { background: linear-gradient(to right, #4c2203, #6B3005); }
+        .footer-social-icon { transition: all 0.3s ease; }
+        .footer-social-icon:hover { transform: translateY(-3px); }
+        /* Perbaikan Dropdown Z-Index */
+        .dropdown-content { z-index: 100 !important; }
     </style>
 </head>
-<body class="bg-[#F8FAFC] text-[#1E293B]">
+<body class="bg-[#F8FAFC]" x-data="{ mobileMenu: false }">
 
 @php
     $cartCount = collect(session('cart', []))->sum(fn($i) => $i['quantity']);   
 @endphp
 
-{{-- Navbar --}}
-<nav class="nav-glass sticky top-0 z-50 border-b border-orange-900/30 shadow-lg">
-    <div class="container mx-auto px-3 sm:px-6 py-2.5">
-        <div class="flex items-center justify-between gap-1 sm:gap-4">
+<nav class="nav-gradient sticky top-0 z-[100] shadow-xl">
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex items-center justify-between gap-4">
             
-            {{-- Area Logo: Pakai min-w-0 supaya text nggak maksa lebar --}}
-            <a href="/" class="flex items-center gap-2 sm:gap-3 shrink group transition-transform active:scale-95 min-w-0">
-                <img src="{{ asset('img/logo-murazon.png') }}"
-                     style="filter: brightness(0) saturate(100%) invert(1)" 
-                     alt="Murazon Logo" 
-                     class="h-8 md:h-14 w-auto drop-shadow-md shrink-0">
-                
-               <div class="flex flex-col leading-tight hidden xs:flex min-w-0">
-                    <span class="text-base md:text-xl font-black tracking-tighter text-white italic truncate">MURAZON</span>
-                    <span class="text-[7px] md:text-[10px] text-orange-200 font-bold uppercase tracking-widest leading-none truncate">Premium Cookware</span>
+            <a href="/" class="flex flex-col items-start shrink-0 group">
+                <img src="{{ asset('img/logo-murazon.png') }}" class="h-6 md:h-7 w-auto object-contain mb-0.5 transition-transform group-hover:scale-105">
+                <div class="flex flex-col items-start leading-none">
+                    <span class="text-[9px] md:text-[10px] font-bold text-white tracking-tight uppercase">Murazon Shopping Market</span>
                 </div>
             </a>
-            
-            {{-- Search Bar Tengah: Muncul di layar Lebar (LG) biar nggak desek-desekan di Tablet --}}
-            <div class="hidden lg:flex flex-1 max-w-md mx-4">
-                <form action="/" method="GET" class="w-full relative group">
-                    <input type="text" 
-                           name="search" 
-                           value="{{ request('search') }}"
-                           placeholder="Cari produk Murazon..." 
-                           class="w-full bg-white/10 border border-white/20 rounded-2xl py-2 pl-11 pr-4 text-sm text-white placeholder:text-white/50 focus:bg-white focus:text-[#6B3005] focus:placeholder:text-gray-400 outline-none transition-all">
-                    <div class="absolute left-4 top-2.5 text-white/50 group-focus-within:text-orange-500">
-                        <i data-lucide="search" class="w-4 h-4"></i>
+
+            <div class="hidden lg:flex flex-1 max-w-xl items-center bg-white/10 rounded-xl border border-white/20 overflow-visible relative">
+                <div class="relative group border-r border-white/20">
+                    <button class="flex items-center gap-2 px-5 py-2.5 text-white text-xs font-bold hover:bg-white/10 transition-all">
+                        <i data-lucide="menu" class="w-4 h-4 text-orange-300"></i>
+                        Kategori
+                        <i data-lucide="chevron-down" class="w-3 h-3 group-hover:rotate-180 transition-transform"></i>
+                    </button>
+                    <div class="absolute top-full left-0 w-60 bg-white shadow-2xl rounded-b-xl py-3 hidden group-hover:block border border-gray-100 dropdown-content animate-in fade-in slide-in-from-top-2 duration-200">
+                        @foreach($categories as $cat)
+                            <a href="{{ ($cat['name'] == 'Semua') ? '/' : '/?category=' . $cat['name'] }}" class="block px-5 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 font-semibold transition-colors">
+                                {{ $cat['name'] }}
+                            </a>
+                        @endforeach
                     </div>
+                </div>
+
+                <form action="/" method="GET" class="flex-1 flex items-center relative">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari perlengkapan dapur..." class="w-full bg-transparent px-4 py-2 text-sm text-white placeholder:text-white/40 outline-none">
+                    <button type="submit" class="pr-4 text-white/50 hover:text-white transition-colors">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                    </button>
                 </form>
             </div>
-            
-            {{-- Action Buttons: Pakai shrink-0 biar tombol gak gepeng --}}
-            <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
-                
-                {{-- Medsos --}}
-                <div class="hidden sm:flex items-center gap-1 border-r border-white/10 pr-2">
-                    <a href="#" class="p-1.5 text-orange-100 hover:text-white transition-colors">
-                        <i class="fa-brands fa-instagram text-sm"></i>
+
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="hidden sm:flex items-center gap-3">
+                    <a href="#" class="flex items-center gap-2 bg-orange-500/20 hover:bg-orange-500/40 px-3 py-1.5 rounded-lg border border-orange-400/30 transition-all text-[10px] font-bold text-orange-200 uppercase tracking-tight">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 fill-orange-400 text-orange-400"></i>
+                        Promo
                     </a>
-                    <a href="#" class="p-1.5 text-orange-100 hover:text-white transition-colors">
-                        <i class="fa-brands fa-facebook text-sm"></i>
+                    <a href="/cart" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg border border-white/10 transition-all text-[10px] font-bold text-white uppercase tracking-tight">
+                        <i data-lucide="shopping-cart" class="w-4 h-4 text-orange-300"></i> 
+                        Keranjang ({{ $cartCount }})
                     </a>
                 </div>
-                
-                 {{-- Tombol Search Mobile --}}
-                <button onclick="toggleMobileSearch()" class="lg:hidden p-2 bg-white/10 text-white rounded-xl border border-white/10 active:bg-orange-500 transition-all shrink-0">
-                    <i data-lucide="search" class="w-5 h-5"></i>
-                </button>
 
-                {{-- Cart --}}
-                <a href="/cart" class="group relative flex items-center justify-center p-2 bg-white/10 hover:bg-orange-500 rounded-xl border border-white/10 transition-all active:scale-90 shrink-0">
-                    <i data-lucide="shopping-bag" class="w-5 h-5 text-white"></i>
-                    <span id="cart-badge" class="{{ $cartCount > 0 ? '' : 'hidden' }} absolute -top-1 -right-1 bg-white text-[#6B3005] text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-md border border-orange-500">
-                        {{ $cartCount }}
-                    </span>
+                <a href="/cart" class="relative p-2 bg-orange-500 rounded-lg text-white lg:hidden">
+                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                    <span class="absolute -top-1 -right-1 bg-white text-orange-700 text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full border border-orange-600">{{ $cartCount }}</span>
                 </a>
+
+                <button @click="mobileMenu = !mobileMenu" class="p-2 text-white bg-white/10 rounded-lg lg:hidden focus:outline-none">
+                    <i data-lucide="menu" x-show="!mobileMenu"></i>
+                    <i data-lucide="x" x-show="mobileMenu" x-cloak></i>
+                </button>
             </div>
         </div>
 
-        {{-- Mobile Search Dropdown --}}
-        <div id="mobile-search" class="hidden lg:hidden mt-3 pb-2 transition-all">
-            <form action="/" method="GET" class="relative">
-                <input type="text" 
-                       name="search" 
-                       value="{{ request('search') }}"
-                       placeholder="Cari produk Murazon..." 
-                       class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-11 pr-4 text-sm outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-sm">
-                <div class="absolute left-4 top-3 text-gray-400">
-                    <i data-lucide="search" class="w-4 h-4"></i>
-                </div>
+        <div class="mt-3 lg:hidden">
+            <form action="/" method="GET" class="flex items-center bg-white/10 rounded-xl border border-white/20 overflow-hidden px-3">
+                <i data-lucide="search" class="w-4 h-4 text-white/40"></i>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari di Murazon..." class="w-full bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-white/40 outline-none">
             </form>
+        </div>
+    </div>
+
+    <div x-show="mobileMenu" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-4"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-cloak class="lg:hidden bg-white border-t border-gray-100 shadow-2xl">
+        <div class="p-4 space-y-4">
+            <a href="#" class="flex items-center justify-between p-4 bg-orange-50 rounded-xl text-xs font-bold text-orange-700">
+                <span class="flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4"></i> Promo Hari Ini</span>
+                <span class="bg-orange-600 text-white text-[8px] px-2 py-0.5 rounded-full">HOT</span>
+            </a>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Kategori Produk</p>
+            <div class="grid grid-cols-2 gap-2">
+                @foreach($categories as $cat)
+                    <a href="{{ ($cat['name'] == 'Semua') ? '/' : '/?category=' . $cat['name'] }}" class="p-3 bg-gray-50 rounded-xl text-xs font-semibold text-gray-700 border border-transparent hover:border-orange-200 hover:bg-orange-50 transition-all">
+                        {{ $cat['name'] }}
+                    </a>
+                @endforeach
+            </div>
         </div>
     </div>
 </nav>
 
-<main class="min-h-screen">
-    @yield('content')
-</main>
+<main class="min-h-screen">@yield('content')</main>
 
-{{-- Footer --}}
-<footer class="bg-white border-t border-gray-100 py-10 mt-10">
-    <div class="container mx-auto px-4 text-center">
-        <img src="{{ asset('img/logo-murazon.png') }}" alt="Logo" class="h-6 mx-auto mb-4 grayscale opacity-40">
-        <div class="flex justify-center gap-6 mb-4 text-gray-400">
-            <a href="#" class="hover:text-orange-600 transition-colors"><i class="fa-brands fa-instagram text-lg"></i></a>
-            <a href="#" class="hover:text-blue-600 transition-colors"><i class="fa-brands fa-facebook text-lg"></i></a>
+<footer class="bg-white border-t border-gray-100 pt-16 pb-8 mt-20">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            <div>
+                <img src="{{ asset('img/logo-murazon.png') }}" class="h-10 mb-4">
+                <p class="text-[11px] font-bold text-orange-600 uppercase mb-4 tracking-tighter">Murazon Shopping Market</p>
+                <div class="space-y-2 text-sm text-gray-500 font-medium">
+                    <p>Jam Operasional : 09.00 wib - 18.00 wib</p>
+                    <p>Whatsapp : +62 812-703-0826</p>
+                    <p>E-mail : customer_service@murazon.com</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-sm font-semibold text-gray-600">
+                <div class="space-y-3">
+                    <a href="{{ route('about.us') }}" class="block hover:text-orange-600 transition-colors">Tentang Kami</a>
+                    <a href="{{ route('garansi') }}" class="block hover:text-orange-600 transition-colors">Kebijakan Garansi</a>
+                </div>
+                <div class="space-y-3">
+                    <a href="{{ route('bantuan') }}" class="block hover:text-orange-600 transition-colors">Bantuan Belanja</a>
+                    <a href="{{ route('penipuan') }}" class="block hover:text-orange-600 transition-colors">Waspada Penipuan</a>
+                </div>
+            </div>
+            <div class="flex flex-col items-start md:items-end gap-6">
+                <div class="flex gap-3">
+                    <a href="#" class="footer-social-icon w-10 h-10 bg-[#3b5998] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="footer-social-icon w-10 h-10 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="footer-social-icon w-10 h-10 bg-[#25D366] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" class="footer-social-icon w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-tiktok"></i></a>
+                </div>
+                <div class="text-sm text-gray-400 font-bold tracking-[0.2em] uppercase">Ikuti Kami</div>
+            </div>
         </div>
-        <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest italic">
-            &copy; 2026 Murazon • Premium Cookware
-        </p>
+        <div class="border-t border-gray-100 pt-8 text-center">
+            <p class="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">&copy; 2026 MURAZON • KUALITAS PREMIUM PERLENGKAPAN DAPUR</p>
+        </div>
     </div>
 </footer>
 
-{{-- Floating WhatsApp --}}
-<div class="fixed bottom-6 right-6 z-50">
-    <a href="https://wa.me/6282285455631?text=Halo%20Murazon,%20saya%20ingin%20tanya..." 
-       target="_blank"
-       class="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-green-600 to-green-400 shadow-xl transition-all hover:scale-110 active:scale-95">
-        <i class="fab fa-whatsapp text-2xl sm:text-4xl text-white"></i>
+<div class="fixed bottom-6 right-6 z-[110]">
+    <a href="https://wa.me/628127030826" target="_blank" class="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#25D366] shadow-2xl transition-all hover:scale-110 text-white">
+        <i class="fab fa-whatsapp text-3xl"></i>
     </a>
 </div>
 
 @stack('scripts')
 <script>
-    lucide.createIcons();
-    window.refreshIcons = () => { lucide.createIcons(); };
-    function toggleMobileSearch() {
-        const searchBar = document.getElementById('mobile-search');
-        searchBar.classList.toggle('hidden');
-        if(!searchBar.classList.contains('hidden')) {
-            searchBar.querySelector('input').focus();
+    function initLucide() {
+        if (window.lucide) {
+            window.lucide.createIcons();
         }
     }
+    document.addEventListener('DOMContentLoaded', initLucide);
+    document.addEventListener('alpine:initialized', initLucide);
 </script>
 </body>
 </html>
