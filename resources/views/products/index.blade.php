@@ -37,7 +37,7 @@
     <div class="container mx-auto px-4 pt-8">
         <div class="rounded-[3rem] p-10 md:p-20 text-white shadow-2xl border-4 border-white relative overflow-hidden" 
              style="background: linear-gradient(135deg, #4c2203 0%, #a1500a 40%, #E1700F 100%);">
-            <div class="absolute w-[400px] h-[400px] rounded-full blur-[100px] opacity-20 -top-20 -right-20 pointer-events-none" 
+            <div class="absolute w-100 h-100 rounded-full blur-[100px] opacity-20 -top-20 -right-20 pointer-events-none" 
                  style="background: radial-gradient(circle, #FDBA74 0%, transparent 70%);"></div>
             <div class="relative z-10 grid md:grid-cols-2 gap-10 items-center">
                 <div class="space-y-6">

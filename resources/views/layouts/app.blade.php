@@ -32,7 +32,7 @@
     $cartCount = collect(session('cart', []))->sum(fn($i) => $i['quantity'] ?? 0);   
 @endphp
 
-<nav class="nav-gradient sticky top-0 z-[100] shadow-xl">
+<nav class="nav-gradient sticky top-0 z-100 shadow-xl">
     <div class="container mx-auto px-4 py-3">
         <div class="flex items-center justify-between gap-4">
             
@@ -167,7 +167,7 @@
     </div>
 </footer>
 
-<div class="fixed bottom-6 right-6 z-[110]">
+<div class="fixed bottom-6 right-6 z-110">
     <a href="https://wa.me/628127030826" target="_blank" class="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#25D366] shadow-2xl transition-all hover:scale-110 text-white">
         <i class="fab fa-whatsapp text-3xl"></i>
     </a>

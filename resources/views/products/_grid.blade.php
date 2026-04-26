@@ -13,7 +13,7 @@
     @empty
         <div class="col-span-full py-32 text-center bg-white rounded-3xl border border-gray-100 shadow-inner">
             <div class="text-gray-200 mb-6 flex justify-center">
-                <i data-lucide="package-search" class="w-24 h-24 stroke-[1]"></i>
+                <i data-lucide="package-search" class="w-24 h-24 stroke-1"></i>
             </div>
             <p class="text-gray-400 font-bold uppercase italic tracking-widest text-lg">Tidak ada produk yang cocok...</p>
         </div>

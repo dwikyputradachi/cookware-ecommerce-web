@@ -1,5 +1,5 @@
 <aside class="w-full lg:w-1/4">
-    <div class="sticky top-28 bg-white border border-gray-100 rounded-[2rem] p-3 shadow-sm space-y-1">
+    <div class="sticky top-28 bg-white border border-gray-100 rounded-4xl p-3 shadow-sm space-y-1">
         {{-- Header Kecil biar lebih Streetwear/Modern --}}
         <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-5 py-3">Pusat Informasi</p>
 

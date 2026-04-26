@@ -29,7 +29,7 @@
             style="background: linear-gradient(135deg, #7f1d1d 0%, #a1500a 50%, #E1700F 100%);">
             
             {{-- Efek Glow Decorative - Luna naikin opacity-nya dikit biar makin kelihatan --}}
-            <div class="absolute w-[300px] h-[300px] rounded-full blur-[80px] opacity-40 -bottom-10 -left-10 pointer-events-none" 
+            <div class="absolute w-75 h-75 rounded-full blur-[80px] opacity-40 -bottom-10 -left-10 pointer-events-none" 
                 style="background: radial-gradient(circle, #fca5a5 0%, transparent 70%);"></div>
 
             <div class="relative z-10 flex flex-col items-center text-center space-y-6">
@@ -90,7 +90,7 @@
             @empty
                 <div class="col-span-full py-32 text-center bg-white rounded-[3rem] border border-gray-100 shadow-sm">
                     <div class="text-gray-200 mb-6 flex justify-center">
-                        <i data-lucide="ticket-percent" class="w-20 h-20 stroke-[1]"></i>
+                        <i data-lucide="ticket-percent" class="w-20 h-20 stroke-1"></i>
                     </div>
                     <p class="text-gray-400 font-bold uppercase italic tracking-widest text-lg">Belum ada promo aktif...</p>
                     <a href="{{ route('products.index') }}" class="mt-4 inline-block text-[#E1700F] font-extrabold text-sm uppercase underline decoration-2 underline-offset-4">

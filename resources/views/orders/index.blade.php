@@ -39,7 +39,7 @@
     {{-- Hasil Pencarian --}}
     @isset($orders)
         @if($orders->isEmpty())
-            <div class="text-center py-16 border-2 border-dashed border-gray-100 rounded-[2rem]">
+            <div class="text-center py-16 border-2 border-dashed border-gray-100 rounded-4xl">
                 <i data-lucide="package-search" class="w-10 h-10 text-gray-200 mx-auto mb-3"></i>
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Tidak ada pesanan ditemukan</p>
                 <p class="text-[10px] text-gray-400 mt-1">Pastikan nomor WA yang kamu masukkan benar.</p>
@@ -56,9 +56,9 @@
                             <p class="text-[10px] text-gray-400">{{ $order->created_at->format('d M Y, H:i') }}</p>
                         </div>
                         <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider
-                            @if($order->status == 'completed') bg-green-100 text-green-700
-                            @elseif($order->status == 'pending') bg-yellow-100 text-yellow-700
-                            @elseif($order->status == 'waiting_verification') bg-blue-100 text-blue-700
+                            @if($order->status == 'completed')
+                            @elseif($order->status == 'pending')
+                            @elseif($order->status == 'waiting_verification')
                             @else bg-gray-100 text-gray-500 @endif">
                             @if($order->status == 'completed') Selesai
                             @elseif($order->status == 'pending') Menunggu
