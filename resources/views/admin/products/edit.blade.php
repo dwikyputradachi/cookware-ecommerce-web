@@ -54,7 +54,16 @@
                 {{-- Kategori --}}
                 <div class="mb-6">
                     <label for="category" class="block text-sm font-semibold text-gray-700 mb-2">Kategori</label>
-                    <input type="text" id="category" name="category" value="{{ old('category', $product->category) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('category') border-red-500 @enderror" placeholder="Contoh: Panci, Wajan, dll">
+                    <input type="text" id="category" name="category" 
+                        value="{{ old('category', $product->category ?? '') }}" 
+                        list="category-suggestions"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        placeholder="Contoh: Panci, Wajan, dll">
+                    <datalist id="category-suggestions">
+                        @foreach(App\Models\Product::distinct()->pluck('category')->filter() as $cat)
+                            <option value="{{ $cat }}">
+                        @endforeach
+                    </datalist>
                     @error('category')
                         <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
                     @enderror

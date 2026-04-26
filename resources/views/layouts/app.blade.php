@@ -29,7 +29,7 @@
 <body class="bg-[#F8FAFC]" x-data="{ mobileMenu: false }">
 
 @php
-    $cartCount = collect(session('cart', []))->sum(fn($i) => $i['quantity']);   
+    $cartCount = collect(session('cart', []))->sum(fn($i) => $i['quantity'] ?? 0);   
 @endphp
 
 <nav class="nav-gradient sticky top-0 z-[100] shadow-xl">
@@ -69,7 +69,7 @@
 
             <div class="flex items-center gap-3 shrink-0">
                 <div class="hidden sm:flex items-center gap-3">
-                    <a href="#" class="flex items-center gap-2 bg-orange-500/20 hover:bg-orange-500/40 px-3 py-1.5 rounded-lg border border-orange-400/30 transition-all text-[10px] font-bold text-orange-200 uppercase tracking-tight">
+                    <a href="/promo" class="flex items-center gap-2 bg-orange-500/20 hover:bg-orange-500/40 px-3 py-1.5 rounded-lg border border-orange-400/30 transition-all text-[10px] font-bold text-orange-200 uppercase tracking-tight">
                         <i data-lucide="zap" class="w-3.5 h-3.5 fill-orange-400 text-orange-400"></i>
                         Promo
                     </a>
@@ -78,6 +78,10 @@
                         Keranjang ({{ $cartCount }})
                     </a>
                 </div>
+                <a href="{{ route('orders.index') }}" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg border border-white/10 transition-all text-[10px] font-bold text-white uppercase tracking-tight">
+                    <i data-lucide="package" class="w-4 h-4 text-orange-300"></i>
+                    Pesanan
+                </a>
 
                 <a href="/cart" class="relative p-2 bg-orange-500 rounded-lg text-white lg:hidden">
                     <i data-lucide="shopping-bag" class="w-5 h-5"></i>
@@ -139,10 +143,12 @@
                 <div class="space-y-3">
                     <a href="{{ route('about.us') }}" class="block hover:text-orange-600 transition-colors">Tentang Kami</a>
                     <a href="{{ route('garansi') }}" class="block hover:text-orange-600 transition-colors">Kebijakan Garansi</a>
+                    <a href="{{ route('return') }}" class="block hover:text-orange-600 transition-colors">Ketentuan return barang dan penggantian uang</a>
                 </div>
                 <div class="space-y-3">
                     <a href="{{ route('bantuan') }}" class="block hover:text-orange-600 transition-colors">Bantuan Belanja</a>
                     <a href="{{ route('penipuan') }}" class="block hover:text-orange-600 transition-colors">Waspada Penipuan</a>
+                   
                 </div>
             </div>
             <div class="flex flex-col items-start md:items-end gap-6">

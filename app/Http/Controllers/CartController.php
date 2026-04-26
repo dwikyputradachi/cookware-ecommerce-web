@@ -13,13 +13,15 @@ class CartController extends Controller
     /**
      * Menampilkan Halaman Keranjang
      */
-    public function index()
+   public function index()
     {
         $cart = session()->get('cart', []);
         
-        // Ambil kategori agar navbar tidak error (Undefined variable $categories)
+        // Buang item rusak
+        $cart = array_filter($cart, fn($item) => isset($item['quantity']));
+        session()->put('cart', $cart);
+        
         $categories = $this->getCategories();
-
         return view('cart.index', compact('cart', 'categories'));
     }
 
@@ -31,21 +33,33 @@ class CartController extends Controller
         $product = Product::findOrFail($id);
         $cart = session()->get('cart', []);
 
-        $currentQtyInCart = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
+ 
+        foreach ($cart as $key => $item) {
+            if (!isset($item['quantity'])) {
+                unset($cart[$key]);
+            }
+        }
+
+    $currentQtyInCart = isset($cart[$id]) ? $cart[$id]['quantity'] : 0;
         
         if ($product->stock <= $currentQtyInCart) {
             return back()->with('error', 'Maaf, stok tidak mencukupi!');
         }
+        
+        $finalPrice = ($product->is_promo && $product->discount_price) 
+                        ? $product->discount_price 
+                        : $product->price;
 
         if (isset($cart[$id])) {
             $cart[$id]['quantity']++;
         } else {
             $cart[$id] = [
-                "name" => $product->name,
-                "price" => $product->price,
-                "quantity" => 1,
-                "image" => $product->image,
-                "is_cod_available" => (bool) $product->is_cod_available 
+                'name'      => $product->name,
+                'price'     => $finalPrice,           // ← Harga setelah diskon
+                'old_price' => $product->price,       // ← Harga asli (untuk coret di cart.blade)
+                'image'     => $product->image,
+                'is_cod_available' => $product->is_cod_available ?? true,
+                'quantity'  => 1,
             ];
         }
 
@@ -102,79 +116,83 @@ class CartController extends Controller
         return response()->json(['success' => true, 'cart' => $cart]);
     }
 
-    /**
-     * Proses Checkout dan Simpan ke Database
-     */
-    public function checkout(Request $request)
-    {
-        return DB::transaction(function () use ($request) {
-            $cart = session()->get('cart', []);
+   public function checkout(Request $request)
+{
+    return DB::transaction(function () use ($request) {
+        $cart = session()->get('cart', []);
 
-            if (empty($cart)) {
-                return response()->json(['success' => false, 'error' => 'Keranjang kosong.'], 400);
-            }
+        if (empty($cart)) {
+            return response()->json(['success' => false, 'error' => 'Keranjang kosong.'], 400);
+        }
 
-            $itemDetails = [];
-            foreach ($cart as $item) {
-                $itemDetails[] = $item['name'] . " (" . $item['quantity'] . "x)";
-            }
-            $itemsString = implode(", ", $itemDetails);
+        // Handle upload bukti bayar
+        $proofPath = null;
+        if ($request->hasFile('payment_proof')) {
+            $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
+        }
 
-            $totalPriceServer = collect($cart)->sum(fn($item) => $item['price'] * $item['quantity']);
+        // Hitung total dari database (bukan dari session)
+        $totalPriceServer = 0;
+        $itemsString = '';
 
-            $proofPath = null;
-            if ($request->hasFile('payment_proof')) {
-                $proofPath = $request->file('payment_proof')->store('proofs', 'public'); 
-            }
+        foreach ($cart as $id => $item) {
+            $product = Product::find($id);
+            if (!$product) continue;
 
-            // Simpan Data Order
-            $order = Order::create([
-                'customer_name'    => $request->name,
-                'customer_phone'   => $request->phone,
-                'customer_address' => $request->address,
-                'payment_method'   => $request->payment_method,
-                'total_price'      => $totalPriceServer, 
-                'status'           => ($request->payment_method == 'cod') ? 'pending' : 'waiting_verification',
-                'payment_proof'    => $proofPath,
+            $currentPrice = ($product->is_promo && $product->discount_price > 0)
+                            ? $product->discount_price
+                            : $product->price;
+
+            $totalPriceServer += ($currentPrice * $item['quantity']);
+            $itemsString .= "- {$product->name} ({$item['quantity']}x) @ Rp " . number_format($currentPrice) . "\n";
+        }
+
+        // Simpan order
+        $order = Order::create([
+            'customer_name'    => $request->name,
+            'customer_phone'   => $request->phone,
+            'customer_address' => $request->address,
+            'payment_method'   => $request->payment_method,
+            'total_price'      => $totalPriceServer,
+            'status'           => ($request->payment_method == 'cod') ? 'pending' : 'waiting_verification',
+            'payment_proof'    => $proofPath,
+        ]);
+
+        // Simpan item & kurangi stok
+        foreach ($cart as $id => $item) {
+            $product = Product::lockForUpdate()->find($id);
+            if (!$product) continue;
+
+            $finalPrice = ($product->is_promo && $product->discount_price > 0)
+                        ? $product->discount_price
+                        : $product->price;
+
+            OrderItem::create([
+                'order_id'   => $order->id,
+                'product_id' => $id,
+                'quantity'   => $item['quantity'],
+                'price'      => $finalPrice,
             ]);
 
-            // Simpan Detail Item & Kurangi Stok
-            foreach ($cart as $id => $item) {
-                OrderItem::create([
-                    'order_id'   => $order->id,
-                    'product_id' => $id,
-                    'quantity'   => $item['quantity'],
-                    'price'      => $item['price'],
-                ]);
-            
-                $product = Product::lockForUpdate()->find($id); 
-                if ($product) {
-                    if ($product->stock >= $item['quantity']) {
-                        $product->decrement('stock', $item['quantity']);
-                    } else {
-                        throw new \Exception("Stok produk {$product->name} tidak mencukupi.");
-                    }
-                }
-            }
+            $product->decrement('stock', $item['quantity']);
+        }
 
-            // Bersihkan Keranjang
-            session()->forget('cart');
+        session()->forget('cart');
 
-            return response()->json([
-                'success' => true, 
-                'order_id' => $order->id,
-                'items_string' => $itemsString,
-                'data_server' => [
-                    'name' => $order->customer_name,
-                    'phone' => $order->customer_phone,
-                    'address' => $order->customer_address,
-                    'total_price' => number_format($order->total_price, 0, ',', '.'),
-                    'payment_method' => strtoupper($order->payment_method),
-                    'status_text' => ($order->payment_method == 'cod') ? 'Menunggu Pengiriman (COD)' : 'Menunggu Verifikasi Pembayaran'
-                ]
-            ]);
-        });
-    }
+        return response()->json([
+            'success'      => true,
+            'order_id'     => $order->id,
+            'items_string' => $itemsString,
+            'data_server'  => [
+                'name'           => $order->customer_name,
+                'phone'          => $order->customer_phone,
+                'address'        => $order->customer_address,
+                'total_price'    => number_format($order->total_price, 0, ',', '.'),
+                'payment_method' => $order->payment_method,
+            ],
+        ]);
+    });
+}
 
     /**
      * Helper untuk mengambil kategori (Navbar)

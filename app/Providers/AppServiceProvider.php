@@ -3,7 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View; // Tambahkan ini
+use Illuminate\Support\Facades\View;
+use App\Models\Product;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,15 +12,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Kode ini akan mengirim data $categories ke SEMUA halaman otomatis
         View::composer('*', function ($view) {
-            $categories = [
-                ['name' => 'Semua'],
-                ['name' => 'Panci'],
-                ['name' => 'Wajan'],
-                ['name' => 'Spatula'],
-                ['name' => 'Pisau'],
-            ];
+            $categories = Product::distinct()
+                ->pluck('category')
+                ->filter()
+                ->map(fn($name) => [
+                    'name' => $name,
+                    'img'  => strtolower(str_replace(' ', '-', $name)) . '.png'
+                ])
+                ->prepend(['name' => 'Semua', 'img' => 'all-products.png']);
+
             $view->with('categories', $categories);
         });
     }

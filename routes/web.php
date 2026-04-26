@@ -4,9 +4,16 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\OrderController;
 
-Route::get('/', [ProductController::class, 'index']);
+Route::get('/', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::get('/promo', [ProductController::class, 'promo'])->name('products.promo');
+Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+Route::get('/pesanan', [OrderController::class, 'index'])->name('orders.index');
+Route::post('/pesanan', [OrderController::class, 'search'])->name('orders.search');
+Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
 // Route Cart
 Route::get('/cart', [CartController::class, 'index']);
@@ -14,6 +21,10 @@ Route::post('/cart/add/{id}', [CartController::class, 'add']);
 Route::post('/cart/update/{id}', [CartController::class, 'update']);
 Route::post('/cart/remove/{id}', [CartController::class, 'remove']);
 Route::post('/checkout', [CartController::class, 'checkout']);
+Route::get('/clear-cart', function() {
+    session()->forget('cart');
+    return redirect('/cart');
+});
 
 // Admin Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -57,3 +68,7 @@ Route::get('/penipuan', function () {
 Route::get('/panduan', function () {
     return view('panduan');
 })->name('panduan');
+
+Route::get('/return', function () {
+    return view('returnbarang');
+})->name('return');
