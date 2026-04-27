@@ -29,7 +29,15 @@ Route::get('/clear-cart', function() {
 // Admin Routes
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-    
+
+    // Order management for admin
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [AdminController::class, 'orders'])->name('index');
+        Route::get('/{order}', [AdminController::class, 'showOrder'])->name('show');
+        Route::post('/{order}/approve', [AdminController::class, 'approveOrder'])->name('approve');
+        Route::post('/{order}/reject', [AdminController::class, 'rejectOrder'])->name('reject');
+    });
+
     // Products CRUD
     Route::prefix('products')->name('products.')->group(function () {
         Route::get('/', [AdminController::class, 'indexProducts'])->name('index');

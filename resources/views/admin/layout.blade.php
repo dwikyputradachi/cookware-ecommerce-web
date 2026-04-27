@@ -119,6 +119,11 @@
                 <span>Kelola Produk</span>
             </a>
 
+            <a href="{{ route('admin.orders.index') }}" class="nav-item {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                <i class="fas fa-clipboard-check"></i>
+                <span>Verifikasi Orderan</span>
+            </a>
+
             <a href="/" class="nav-item">
                 <i class="fas fa-arrow-left"></i>
                 <span>Kembali ke Toko</span>

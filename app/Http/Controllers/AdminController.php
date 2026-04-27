@@ -109,4 +109,52 @@ class AdminController extends Controller
         return redirect()->route('admin.products.index')
                         ->with('success', 'Produk berhasil dihapus!');
     }
+
+    // ORDER MANAGEMENT
+
+    public function orders()
+    {
+    $orders = Order::latest()->get();
+    return view('admin.orders.index', compact('orders'));
+    }
+
+    public function showOrder($id)
+    {   
+        $order = Order::with(['user', 'items.product'])->findOrFail($id);
+        return view('admin.orders.show', compact('order'));
+    }
+
+    public function approveOrder($id)
+    {
+        $order = Order::findOrFail($id);
+
+        // Cegah double approval
+        if ($order->status !== 'waiting_verification') {
+            return back()->with('error', 'Order sudah diproses');
+        }
+
+        $order->update([
+            'status' => 'approved'
+        ]);
+
+        return back()->with('success', 'Pesanan berhasil disetujui');
+    }
+
+    public function rejectOrder($id)
+    {
+        $order = Order::findOrFail($id);
+
+        // Cegah double rejection
+        if ($order->status !== 'waiting_verification') {
+            return back()->with('error', 'Order sudah diproses');
+        }
+
+        $order->update([
+            'status' => 'rejected'
+        ]);
+
+        return back()->with('success', 'Pesanan berhasil ditolak');
+    }
+
 }
+
