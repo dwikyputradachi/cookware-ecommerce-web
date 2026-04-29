@@ -9,19 +9,36 @@ use App\Models\Order;
 class AdminController extends Controller
 {
     /**
+     * Upload image to Cloudinary and return secure URL
+     */
+    private function uploadToCloudinary($file)
+    {
+        $cloudinary = new \Cloudinary\Cloudinary([
+            'cloud' => [
+                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                'api_key'    => env('CLOUDINARY_API_KEY'),
+                'api_secret' => env('CLOUDINARY_API_SECRET'),
+            ]
+        ]);
+
+        $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
+            'folder' => 'products'
+        ]);
+
+        return $result['secure_url'];
+    }
+
+    /**
      * Show Admin Dashboard
      */
     public function dashboard()
     {
-        // Product Statistics
-        $totalProducts = Product::count();
-        $totalStock = Product::sum('stock');
+        $totalProducts      = Product::count();
+        $totalStock         = Product::sum('stock');
         $codAvailableProducts = Product::where('is_cod_available', true)->count();
-        $lowStockProducts = Product::where('stock', '<', 5)->count();
-        
-        // AdminController@dashboard
-        $totalRevenue = Order::where('status', 'completed')->sum('total_price');
-        $totalOrders = Order::where('status', 'completed')->count(); 
+        $lowStockProducts   = Product::where('stock', '<', 5)->count();
+        $totalRevenue       = Order::where('status', 'completed')->sum('total_price');
+        $totalOrders        = Order::where('status', 'completed')->count();
 
         return view('admin.dashboard', compact(
             'totalProducts',
@@ -56,20 +73,18 @@ class AdminController extends Controller
     public function storeProduct(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'category' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'video_url' => 'nullable|url',
+            'name'           => 'required|string|max:255',
+            'description'    => 'nullable|string',
+            'price'          => 'required|numeric|min:0',
+            'stock'          => 'required|integer|min:0',
+            'category'       => 'nullable|string|max:255',
+            'image'          => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'video_url'      => 'nullable|url',
             'is_cod_available' => 'boolean'
         ]);
 
-        // Handle image upload
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
-            $validated['image'] = $imagePath;
+            $validated['image'] = $this->uploadToCloudinary($request->file('image'));
         }
 
         $validated['is_cod_available'] = $request->has('is_cod_available') ? 1 : 0;
@@ -77,7 +92,7 @@ class AdminController extends Controller
         Product::create($validated);
 
         return redirect()->route('admin.products.index')
-                        ->with('success', 'Produk berhasil ditambahkan!');
+                         ->with('success', 'Produk berhasil ditambahkan!');
     }
 
     /**
@@ -107,20 +122,20 @@ class AdminController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            $validated['image'] = $this->uploadToCloudinary($request->file('image'));
         }
 
         $validated['is_cod_available'] = $request->has('is_cod_available') ? 1 : 0;
         $validated['is_promo']         = $request->has('is_promo') ? 1 : 0;
 
-        // Kalau promo dimatiin, reset harga promo
         if (!$validated['is_promo']) {
             $validated['discount_price'] = null;
         }
 
         $product->update($validated);
 
-        return redirect()->route('admin.products.index')->with('success', 'Produk berhasil diperbarui!');
+        return redirect()->route('admin.products.index')
+                         ->with('success', 'Produk berhasil diperbarui!');
     }
 
     /**
@@ -131,52 +146,51 @@ class AdminController extends Controller
         $product->delete();
 
         return redirect()->route('admin.products.index')
-                        ->with('success', 'Produk berhasil dihapus!');
+                         ->with('success', 'Produk berhasil dihapus!');
     }
 
     // ORDER MANAGEMENT
 
     public function orders()
     {
-    $orders = Order::latest()->get();
-    return view('admin.orders.index', compact('orders'));
+        $orders = Order::latest()->get();
+        return view('admin.orders.index', compact('orders'));
     }
 
     public function showOrder($id)
-    {   
+    {
         $order = Order::with(['user', 'items.product'])->findOrFail($id);
         return view('admin.orders.show', compact('order'));
     }
 
     public function approveOrder($id)
-{
-    $order = Order::with('items.product')->findOrFail($id);
+    {
+        $order = Order::with('items.product')->findOrFail($id);
 
-    if ($order->status !== 'waiting_verification') {
-        return back()->with('error', 'Order sudah diproses');
+        if ($order->status !== 'waiting_verification') {
+            return back()->with('error', 'Order sudah diproses');
+        }
+
+        foreach ($order->items as $item) {
+            $item->product->decrement('stock', $item->quantity);
+            $item->product->increment('total_sold', $item->quantity);
+        }
+
+        $order->update(['status' => 'completed']);
+
+        return back()->with('success', 'Pesanan berhasil disetujui');
     }
 
-    // Kurangi stok & tambah total_sold per item
-    foreach ($order->items as $item) {
-        $item->product->decrement('stock', $item->quantity);
-        $item->product->increment('total_sold', $item->quantity);
+    public function rejectOrder($id)
+    {
+        $order = Order::findOrFail($id);
+
+        if ($order->status !== 'waiting_verification') {
+            return back()->with('error', 'Order sudah diproses');
+        }
+
+        $order->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'Pesanan berhasil ditolak');
     }
-
-    $order->update(['status' => 'completed']);
-
-    return back()->with('success', 'Pesanan berhasil disetujui');
-}
-
-public function rejectOrder($id)
-{
-    $order = Order::findOrFail($id);
-
-    if ($order->status !== 'waiting_verification') {
-        return back()->with('error', 'Order sudah diproses');
-    }
-
-    $order->update(['status' => 'cancelled']);
-
-    return back()->with('success', 'Pesanan berhasil ditolak');
-}
 }
