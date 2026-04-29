@@ -6,6 +6,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\AdminAuthController;
 
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -27,10 +28,22 @@ Route::get('/clear-cart', function() {
 });
 
 // Admin Routes
-Route::prefix('admin')->name('admin.')->group(function () {
+// Auth Admin (public)
+Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
+Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
+Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+
+// Protected Admin Routes
+Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-    
-    // Products CRUD
+
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [AdminController::class, 'orders'])->name('index');
+        Route::get('/{order}', [AdminController::class, 'showOrder'])->name('show');
+        Route::post('/{order}/approve', [AdminController::class, 'approveOrder'])->name('approve');
+        Route::post('/{order}/reject', [AdminController::class, 'rejectOrder'])->name('reject');
+    });
+
     Route::prefix('products')->name('products.')->group(function () {
         Route::get('/', [AdminController::class, 'indexProducts'])->name('index');
         Route::get('/create', [AdminController::class, 'createProduct'])->name('create');
