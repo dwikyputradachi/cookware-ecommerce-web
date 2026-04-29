@@ -44,11 +44,11 @@
                                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
                                     <i class="fas fa-clock"></i> Menunggu
                                 </span>
-                            @elseif($order->status == 'approved')
+                            @elseif($order->status == 'completed')
                                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                                     <i class="fas fa-check-circle"></i> Disetujui
                                 </span>
-                            @elseif($order->status == 'rejected')
+                            @elseif($order->status == 'cancelled')
                                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                                     <i class="fas fa-times-circle"></i> Ditolak
                                 </span>

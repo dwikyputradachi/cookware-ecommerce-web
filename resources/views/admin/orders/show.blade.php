@@ -21,11 +21,11 @@
                         <span class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full font-medium flex items-center gap-2">
                             <i class="fas fa-clock"></i> Menunggu Verifikasi
                         </span>
-                    @elseif($order->status == 'approved')
+                    @elseif($order->status == 'completed')
                         <span class="px-4 py-2 bg-green-100 text-green-800 rounded-full font-medium flex items-center gap-2">
                             <i class="fas fa-check-circle"></i> Disetujui
                         </span>
-                    @elseif($order->status == 'rejected')
+                    @elseif($order->status == 'cancelled')
                         <span class="px-4 py-2 bg-red-100 text-red-800 rounded-full font-medium flex items-center gap-2">
                             <i class="fas fa-times-circle"></i> Ditolak
                         </span>
