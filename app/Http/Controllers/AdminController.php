@@ -11,23 +11,26 @@ class AdminController extends Controller
     /**
      * Upload image to Cloudinary and return secure URL
      */
-    private function uploadToCloudinary($file)
-    {
-        $cloudinary = new \Cloudinary\Cloudinary([
-            'cloud' => [
-                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                'api_key'    => env('CLOUDINARY_API_KEY'),
-                'api_secret' => env('CLOUDINARY_API_SECRET'),
-            ]
-        ]);
+   private function uploadToCloudinary($file)
+{
+    $cloudinaryUrl = env('CLOUDINARY_URL');
+    // Parse: cloudinary://api_key:api_secret@cloud_name
+    $parsed = parse_url($cloudinaryUrl);
 
-        $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
-            'folder' => 'products'
-        ]);
+    $cloudinary = new \Cloudinary\Cloudinary([
+        'cloud' => [
+            'cloud_name' => $parsed['host'],
+            'api_key'    => $parsed['user'],
+            'api_secret' => $parsed['pass'],
+        ]
+    ]);
 
-        return $result['secure_url'];
-    }
+    $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
+        'folder' => 'products'
+    ]);
 
+    return $result['secure_url'];
+}
     /**
      * Show Admin Dashboard
      */
