@@ -19,6 +19,7 @@ class AdminController extends Controller
         $codAvailableProducts = Product::where('is_cod_available', true)->count();
         $lowStockProducts = Product::where('stock', '<', 5)->count();
         
+
         // AdminController@dashboard
         $totalRevenue = Order::where('status', 'completed')->sum('total_price');
         $totalOrders = Order::where('status', 'completed')->count(); 
