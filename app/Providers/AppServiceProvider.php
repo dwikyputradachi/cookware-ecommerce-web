@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\View;
+use App\Models\Product;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +22,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // 1. Paksa HTTPS di lingkungan produksi (Railway)
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
+
+        // 2. View Composer untuk Kategori Produk
+        View::composer('*', function ($view) {
+            $categories = Product::distinct()
+                ->pluck('category')
+                ->filter()
+                ->map(fn($name) => [
+                    'name' => $name,
+                    'img'  => strtolower(str_replace(' ', '-', $name)) . '.png'
+                ])
+                ->prepend(['name' => 'Semua', 'img' => 'all-products.png']);
+
+            $view->with('categories', $categories);
+        });
     }
 }

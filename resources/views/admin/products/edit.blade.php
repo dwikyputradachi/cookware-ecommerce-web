@@ -54,7 +54,16 @@
                 {{-- Kategori --}}
                 <div class="mb-6">
                     <label for="category" class="block text-sm font-semibold text-gray-700 mb-2">Kategori</label>
-                    <input type="text" id="category" name="category" value="{{ old('category', $product->category) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('category') border-red-500 @enderror" placeholder="Contoh: Panci, Wajan, dll">
+                    <input type="text" id="category" name="category" 
+                        value="{{ old('category', $product->category ?? '') }}" 
+                        list="category-suggestions"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        placeholder="Contoh: Panci, Wajan, dll">
+                    <datalist id="category-suggestions">
+                        @foreach(App\Models\Product::distinct()->pluck('category')->filter() as $cat)
+                            <option value="{{ $cat }}">
+                        @endforeach
+                    </datalist>
                     @error('category')
                         <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
                     @enderror
@@ -105,7 +114,75 @@
                     </label>
                     <p class="text-xs text-gray-600 mt-2 ml-8">Jika diaktifkan, pelanggan dapat memilih pembayaran COD untuk produk ini</p>
                 </div>
+ 
+                {{-- Promo --}}
+                <div class="mb-8 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="is_promo" name="is_promo" value="1"
+                            {{ old('is_promo', $product->is_promo) ? 'checked' : '' }}
+                            class="w-5 h-5 text-orange-500 rounded focus:ring-orange-400"
+                            onchange="toggleDiscountPrice(this)">
+                        <span class="text-sm font-semibold text-gray-700">
+                            <i class="fas fa-tag text-orange-500 mr-2"></i>Aktifkan Promo
+                        </span>
+                    </label>
 
+                    <div id="discount_price_wrapper" class="mt-4 ml-8 {{ old('is_promo', $product->is_promo) ? '' : 'hidden' }}">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Diskon <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center flex-1">
+                            <input type="number" id="discount_percent" min="1" max="99"
+                                value="{{ old('is_promo', $product->is_promo) && $product->discount_price 
+                                    ? round((($product->price - $product->discount_price) / $product->price) * 100) 
+                                    : '' }}"
+                                class="w-24 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                placeholder="0" oninput="calcDiscount()">
+                            <span class="px-4 py-2 bg-gray-100 border border-gray-300 border-l-0 rounded-r-lg text-gray-700">%</span>
+                        </div>
+                        <span class="text-gray-500 text-sm">→</span>
+                        <p class="text-sm font-semibold text-orange-600" id="discount_result">
+                            {{ old('is_promo', $product->is_promo) && $product->discount_price 
+                                ? 'Rp ' . number_format($product->discount_price, 0, ',', '.') 
+                                : '-' }}
+                        </p>
+                    </div>
+                    {{-- hidden field tetap kirim discount_price ke controller --}}
+                    <input type="hidden" id="discount_price" name="discount_price"
+                        value="{{ old('discount_price', $product->discount_price) }}">
+                    @error('discount_price')
+                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <script>
+                function calcDiscount() {
+                    const price   = parseFloat(document.getElementById('price').value) || 0;
+                    const pct     = parseFloat(document.getElementById('discount_percent').value) || 0;
+                    const result  = price - (price * pct / 100);
+                    document.getElementById('discount_price').value = result > 0 ? result : '';
+                    document.getElementById('discount_result').textContent = result > 0
+                        ? 'Rp ' + result.toLocaleString('id-ID') : '-';
+                }
+
+                function toggleDiscountPrice(checkbox) {
+                    document.getElementById('discount_price_wrapper').classList.toggle('hidden', !checkbox.checked);
+                    if (!checkbox.checked) {
+                        document.getElementById('discount_percent').value = '';
+                        document.getElementById('discount_price').value   = '';
+                        document.getElementById('discount_result').textContent = '-';
+                    }
+                }
+                </script>
+                </div>
+
+                <script>
+                    function toggleDiscountPrice(checkbox) {
+                        document.getElementById('discount_price_wrapper').classList.toggle('hidden', !checkbox.checked);
+                        if (!checkbox.checked) document.getElementById('discount_price').value = '';
+                    }
+                </script>
                 {{-- Submit Buttons --}}
                 <div class="flex gap-3">
                     <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center gap-2">

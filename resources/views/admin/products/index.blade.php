@@ -42,9 +42,19 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-gray-700">
-                            Rp {{ number_format($product->price, 0, ',', '.') }}
-                        </td>
+                        <td class="px-6 py-4">
+                        @if($product->is_promo && $product->discount_price)
+                            <div>
+                                <p class="text-xs text-gray-400 line-through">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                                <p class="font-bold text-orange-600">Rp {{ number_format($product->discount_price, 0, ',', '.') }}</p>
+                                <span class="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-semibold">
+                                    -{{ round((($product->price - $product->discount_price) / $product->price) * 100) }}%
+                                </span>
+                            </div>
+                        @else
+                            <p class="text-gray-700">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                        @endif
+                    </td>
                         <td class="px-6 py-4">
                             <span class="px-3 py-1 rounded-full text-sm font-medium {{ $product->stock > 10 ? 'bg-green-100 text-green-800' : ($product->stock > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
                                 {{ $product->stock }}
