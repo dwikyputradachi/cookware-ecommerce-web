@@ -46,7 +46,7 @@
                          x-transition:enter-start="opacity-0"
                          x-transition:enter-end="opacity-100">
                         @if($product->image)
-                            <img src="{{ asset('storage/' . $product->image) }}" class="w-full h-full object-cover">
+                            <img src="{{ str_contains($product->image ?? '', 'http') ? $product->image : asset('storage/' . $product->image) }}" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full bg-orange-50 flex flex-col items-center justify-center text-(--color-secondary) p-6">
                                 <i data-lucide="image" class="w-16 h-16 mb-4 opacity-20"></i>

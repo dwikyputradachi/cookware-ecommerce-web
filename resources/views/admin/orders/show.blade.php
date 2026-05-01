@@ -102,7 +102,7 @@
                 
                 @if($order->payment_proof)
                     <div class="bg-gray-100 rounded-lg overflow-hidden">
-                        <img src="{{ asset('storage/' . $order->payment_proof) }}" 
+                        <img src="{{ str_contains($order->payment_proof ?? '', 'http') ? $order->payment_proof : asset('storage/' . $order->payment_proof) }}"
                              alt="Bukti Pembayaran" 
                              class="w-full h-auto object-cover rounded-lg">
                     </div>

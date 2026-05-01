@@ -53,14 +53,6 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::delete('/{product}', [AdminController::class, 'destroyProduct'])->name('destroy');
     });
 });
-
-// ROUTE BAHASA (Wajib di luar grup admin)
-Route::get('lang/{locale}', function ($locale) {
-    if (in_array($locale, ['en', 'id'])) {
-        session()->put('locale', $locale);
-    }
-    return redirect()->back();
-});
 // Route untuk halaman Tentang Kami
 Route::get('/about-us', function () {
     return view('aboutus'); 

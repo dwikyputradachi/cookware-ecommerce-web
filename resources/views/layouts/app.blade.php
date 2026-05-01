@@ -12,7 +12,7 @@
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
@@ -154,7 +154,7 @@
             <div class="flex flex-col items-start md:items-end gap-6">
                 <div class="flex gap-3">
                     <a href="#" class="footer-social-icon w-10 h-10 bg-[#3b5998] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="footer-social-icon w-10 h-10 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="footer-social-icon w-10 h-10 bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-instagram"></i></a>
                     <a href="#" class="footer-social-icon w-10 h-10 bg-[#25D366] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-whatsapp"></i></a>
                     <a href="#" class="footer-social-icon w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-tiktok"></i></a>
                 </div>

@@ -31,7 +31,7 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
                                 @if ($product->image)
-                                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-10 h-10 rounded object-cover">
+                                    <img src="{{ str_contains($product->image ?? '', 'http') ? $product->image : asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-10 h-10 rounded object-cover">
                                 @else
                                     <div class="w-10 h-10 rounded bg-gray-200 flex items-center justify-center">
                                         <i class="fas fa-image text-gray-400"></i>

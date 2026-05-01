@@ -76,7 +76,7 @@
                     @if ($product->image)
                         <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                             <p class="text-sm text-gray-700 mb-2 font-medium">Gambar Saat Ini:</p>
-                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="h-32 w-32 object-cover rounded-lg">
+                            <img src="{{ str_contains($product->image ?? '', 'http') ? $product->image : asset('storage/' . $product->image) }}" class="h-32 w-32 object-cover rounded-lg">
                         </div>
                     @endif
 

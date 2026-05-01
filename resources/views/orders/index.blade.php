@@ -72,8 +72,7 @@
                         @foreach($order->items as $item)
                         @if($item->product)
                         <div class="flex items-center gap-4 px-5 py-4">
-                            <img src="{{ asset('storage/' . $item->product->image) }}"
-                                 class="w-14 h-14 object-contain bg-gray-50 rounded-xl border border-gray-100">
+                            <img src="{{ str_contains($item->product->image ?? '', 'http') ? $item->product->image : asset('storage/' . $item->product->image) }}" class="w-14 h-14 object-contain bg-gray-50 rounded-xl border border-gray-100">
                             <div class="flex-1">
                                 <p class="text-sm font-bold text-gray-800 line-clamp-1">{{ $item->product->name }}</p>
                                 <p class="text-[10px] text-gray-400 mt-0.5">
