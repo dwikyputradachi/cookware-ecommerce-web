@@ -59,12 +59,14 @@
             background: linear-gradient(160deg, var(--brand) 0%, var(--brand-dark) 100%);
             width: var(--sidebar-w);
             min-height: 100vh;
+            min-height: 100dvh;
             position: fixed;
             left: 0; top: 0;
             z-index: 40;
             display: flex;
             flex-direction: column;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
         }
 
         .sidebar-brand {
@@ -155,6 +157,9 @@
             margin-top: auto;
             padding: 16px;
             border-top: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            bottom: 0;
+            background: linear-gradient(160deg, var(--brand) 0%, var(--brand-dark) 100%);
         }
 
         .admin-info {
