@@ -156,6 +156,8 @@
         .sidebar-footer {
             margin-top: auto;
             padding: 16px;
+            padding-bottom: calc(16px + constant(safe-area-inset-bottom));
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
             border-top: 1px solid rgba(255,255,255,0.1);
             position: sticky;
             bottom: 0;
