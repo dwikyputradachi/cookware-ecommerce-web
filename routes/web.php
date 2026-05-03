@@ -32,6 +32,7 @@ Route::get('/clear-cart', function() {
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
 Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
+Route::get('/admin/logout', fn() => redirect()->route('admin.login'));
 
 // Protected Admin Routes
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {

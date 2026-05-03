@@ -21,9 +21,9 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ── Left panel — matches sidebar gradient ── */
+        /* ── Left panel ── */
         .left-panel {
-            width: 420px;
+            width: 400px;
             flex-shrink: 0;
             background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
             display: flex;
@@ -35,7 +35,6 @@
             overflow: hidden;
         }
 
-        /* decorative circles */
         .left-panel::before,
         .left-panel::after {
             content: '';
@@ -52,7 +51,7 @@
             border-radius: 18px;
             display: flex; align-items: center; justify-content: center;
             font-size: 28px; color: white;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
             border: 1px solid rgba(255,255,255,0.2);
             position: relative; z-index: 1;
         }
@@ -76,7 +75,7 @@
             width: 48px; height: 2px;
             background: rgba(255,255,255,0.25);
             border-radius: 2px;
-            margin: 32px 0;
+            margin: 28px 0;
             position: relative; z-index: 1;
         }
 
@@ -84,13 +83,13 @@
             display: flex; align-items: center; gap: 12px;
             color: rgba(255,255,255,0.75);
             font-size: 13px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             position: relative; z-index: 1;
             align-self: flex-start;
         }
 
-        .feature-item i {
-            width: 28px; height: 28px;
+        .feature-item .fi-icon {
+            width: 30px; height: 30px;
             background: rgba(255,255,255,0.1);
             border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
@@ -98,13 +97,13 @@
             flex-shrink: 0;
         }
 
-        /* ── Right panel — form ── */
+        /* ── Right panel ── */
         .right-panel {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 48px 32px;
+            padding: 48px 24px;
         }
 
         .form-card {
@@ -112,18 +111,27 @@
             max-width: 400px;
         }
 
-        .form-heading {
-            font-size: 22px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 6px;
-        }
-
-        .form-sub {
-            font-size: 13px;
-            color: #94a3b8;
+        /* Mobile top branding (hidden on desktop) */
+        .mobile-brand {
+            display: none;
+            text-align: center;
             margin-bottom: 32px;
         }
+
+        .mobile-brand-icon {
+            width: 52px; height: 52px;
+            background: #1e40af;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; color: white;
+            margin: 0 auto 12px;
+        }
+
+        .mobile-brand h2 { font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 3px; }
+        .mobile-brand p  { font-size: 13px; color: #94a3b8; margin: 0; }
+
+        .form-heading { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .form-sub     { font-size: 13px; color: #94a3b8; margin-bottom: 28px; }
 
         .error-box {
             background: #fef2f2;
@@ -133,22 +141,20 @@
             color: #dc2626;
             font-size: 13px;
             display: flex; align-items: center; gap: 10px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        .field { margin-bottom: 20px; }
+        .field { margin-bottom: 18px; }
 
         .field label {
             display: block;
             font-size: 13px;
             font-weight: 600;
             color: #374151;
-            margin-bottom: 8px;
+            margin-bottom: 7px;
         }
 
-        .input-wrap {
-            position: relative;
-        }
+        .input-wrap { position: relative; }
 
         .input-wrap i {
             position: absolute;
@@ -188,7 +194,7 @@
             border-radius: 10px;
             cursor: pointer;
             transition: opacity 0.2s, transform 0.15s;
-            margin-top: 8px;
+            margin-top: 6px;
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
 
@@ -197,7 +203,7 @@
 
         .back-link {
             display: inline-flex; align-items: center; gap: 6px;
-            margin-top: 24px;
+            margin-top: 22px;
             font-size: 13px;
             color: #64748b;
             text-decoration: none;
@@ -205,14 +211,22 @@
         }
         .back-link:hover { color: #1e40af; }
 
-        @media (max-width: 640px) {
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
             .left-panel { display: none; }
+            .mobile-brand { display: block; }
+            .right-panel { align-items: flex-start; padding: 40px 20px; }
+        }
+
+        @media (max-width: 400px) {
+            .right-panel { padding: 28px 16px; }
+            .form-heading { font-size: 20px; }
         }
     </style>
 </head>
 <body>
 
-    {{-- Left branding panel --}}
+    {{-- Left branding panel (desktop only) --}}
     <div class="left-panel">
         <div class="brand-logo"><i class="fas fa-shield-halved"></i></div>
         <div class="brand-title">Murazon</div>
@@ -221,23 +235,31 @@
         <div class="divider-line"></div>
 
         <div class="feature-item">
-            <i class="fas fa-box"></i>
-            Kelola produk & stok
+            <div class="fi-icon"><i class="fas fa-box"></i></div>
+            Kelola produk &amp; stok
         </div>
         <div class="feature-item">
-            <i class="fas fa-clipboard-check"></i>
+            <div class="fi-icon"><i class="fas fa-clipboard-check"></i></div>
             Verifikasi pesanan masuk
         </div>
         <div class="feature-item">
-            <i class="fas fa-chart-line"></i>
-            Pantau revenue & statistik
+            <div class="fi-icon"><i class="fas fa-chart-line"></i></div>
+            Pantau revenue &amp; statistik
         </div>
     </div>
 
     {{-- Right form panel --}}
     <div class="right-panel">
         <div class="form-card">
-            <p class="form-heading">Selamat Datang </p>
+
+            {{-- Mobile-only brand header --}}
+            <div class="mobile-brand">
+                <div class="mobile-brand-icon"><i class="fas fa-shield-halved"></i></div>
+                <h2>Murazon</h2>
+                <p>Admin Panel</p>
+            </div>
+
+            <p class="form-heading">Selamat Datang</p>
             <p class="form-sub">Masuk ke panel admin Murazon</p>
 
             @if($errors->any())
