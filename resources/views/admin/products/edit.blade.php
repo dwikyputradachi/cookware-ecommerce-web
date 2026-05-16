@@ -1,19 +1,18 @@
-@php
-    use Illuminate\Support\Str;
-    function img_url($path) {
-        if (!$path) return asset('img/no-image.png');
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
-        }
-        return 'https://res.cloudinary.com/' . env('CLOUDINARY_CLOUD_NAME') . '/image/upload/' . $path;
-    }
-@endphp
 @extends('admin.layout')
 
 @section('title', 'Edit Produk')
 @section('page-title', 'Edit Produk: ' . $product->name)
 
 @section('content')
+@php
+    function img_url($image) {
+        if (!$image) return asset('img/no-image.png');
+
+        return str_starts_with($image, 'http')
+            ? $image
+            : 'https://res.cloudinary.com/dzem84oat/image/upload/products/' . $image;
+    }
+@endphp
     <style>
         .form-card {
             background: white;

@@ -1,19 +1,19 @@
-@php
-    use Illuminate\Support\Str;
-    function img_url($path) {
-        if (!$path) return asset('img/no-image.png');
-        if (Str::startsWith($path, ['http://', 'https://'])) {
-            return $path;
-        }
-        return 'https://res.cloudinary.com/' . env('CLOUDINARY_CLOUD_NAME') . '/image/upload/' . $path;
-    }
-@endphp
 @extends('admin.layout')
 
 @section('title', 'Kelola Produk')
 @section('page-title', 'Kelola Produk')
 
 @section('content')
+@php
+    function img_url($image) {
+        if (!$image) return asset('img/no-image.png');
+
+        return str_starts_with($image, 'http')
+            ? $image
+            : 'https://res.cloudinary.com/dzem84oat/image/upload/products/' . $image;
+    }
+@endphp
+
 <style>
     .page-header {
         display: flex;
@@ -48,8 +48,6 @@
 
     .btn-add:hover { opacity: 0.88; }
 
-    /* ── Table card ── */
-    
     .table-card {
         background: white;
         border-radius: 14px;
@@ -58,7 +56,6 @@
         overflow: hidden;
     }
 
-    /* ── Desktop table ── */
     .products-table {
         width: 100%;
         border-collapse: collapse;
@@ -100,7 +97,8 @@
     .products-table td.center { text-align: center; }
 
     .product-thumb {
-        width: 40px; height: 40px;
+        width: 40px;
+        height: 40px;
         border-radius: 8px;
         object-fit: cover;
         border: 1px solid #e2e8f0;
@@ -108,15 +106,23 @@
     }
 
     .product-thumb-placeholder {
-        width: 40px; height: 40px;
+        width: 40px;
+        height: 40px;
         border-radius: 8px;
         background: #f1f5f9;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 14px; color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: #94a3b8;
         flex-shrink: 0;
     }
 
-    .product-name { font-weight: 600; color: #1e293b; }
+    .product-name {
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+    }
 
     .stock-badge {
         display: inline-block;
@@ -126,9 +132,9 @@
         font-weight: 600;
     }
 
-    .stock-badge.good   { background: #dcfce7; color: #15803d; }
-    .stock-badge.warn   { background: #fef9c3; color: #854d0e; }
-    .stock-badge.empty  { background: #fee2e2; color: #b91c1c; }
+    .stock-badge.good { background: #dcfce7; color: #15803d; }
+    .stock-badge.warn { background: #fef9c3; color: #854d0e; }
+    .stock-badge.empty { background: #fee2e2; color: #b91c1c; }
 
     .cod-badge {
         display: inline-flex;
@@ -141,10 +147,22 @@
     }
 
     .cod-badge.yes { background: #dcfce7; color: #15803d; }
-    .cod-badge.no  { background: #f1f5f9; color: #64748b; }
+    .cod-badge.no { background: #f1f5f9; color: #64748b; }
 
-    .price-original { font-size: 11px; color: #94a3b8; text-decoration: line-through; }
-    .price-promo    { font-weight: 700; color: #ea580c; font-size: 13.5px; }
+    .price-original {
+        font-size: 11px;
+        color: #94a3b8;
+        text-decoration: line-through;
+        margin: 0;
+    }
+
+    .price-promo {
+        font-weight: 700;
+        color: #ea580c;
+        font-size: 13.5px;
+        margin: 0;
+    }
+
     .price-discount-tag {
         display: inline-block;
         background: #ffedd5;
@@ -156,9 +174,15 @@
         margin-top: 2px;
     }
 
-    .action-btns { display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .action-btns {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
 
-    .btn-edit, .btn-delete {
+    .btn-edit,
+    .btn-delete {
         display: inline-flex;
         align-items: center;
         gap: 5px;
@@ -173,24 +197,38 @@
         font-family: inherit;
     }
 
-    .btn-edit   { background: #dbeafe; color: #1d4ed8; }
-    .btn-edit:hover   { background: #bfdbfe; }
+    .btn-edit { background: #dbeafe; color: #1d4ed8; }
+    .btn-edit:hover { background: #bfdbfe; }
+
     .btn-delete { background: #fee2e2; color: #b91c1c; }
     .btn-delete:hover { background: #fecaca; }
 
-    /* ── Empty state ── */
     .empty-state {
         padding: 48px 24px;
         text-align: center;
         color: #94a3b8;
     }
 
-    .empty-state i { font-size: 36px; display: block; margin-bottom: 12px; opacity: 0.4; }
-    .empty-state p { font-size: 14px; margin: 0; }
-    .empty-state a { color: #1e40af; text-decoration: none; font-weight: 600; }
+    .empty-state i {
+        font-size: 36px;
+        display: block;
+        margin-bottom: 12px;
+        opacity: 0.4;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .empty-state a {
+        color: #1e40af;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
     .empty-state a:hover { text-decoration: underline; }
 
-    /* ── Mobile card layout ── */
     .mobile-cards { display: none; }
 
     .product-card {
@@ -215,8 +253,18 @@
     }
 
     .meta-item { font-size: 12px; }
-    .meta-item .meta-label { color: #94a3b8; font-weight: 500; margin-bottom: 2px; }
-    .meta-item .meta-value { color: #1e293b; font-weight: 600; }
+
+    .meta-item .meta-label {
+        color: #94a3b8;
+        font-weight: 500;
+        margin: 0 0 2px;
+    }
+
+    .meta-item .meta-value {
+        color: #1e293b;
+        font-weight: 600;
+        margin: 0;
+    }
 
     .product-card-actions {
         display: flex;
@@ -230,12 +278,14 @@
         padding: 8px 12px;
     }
 
-    /* ── Pagination ── */
-    .pagination-wrap { padding: 16px 20px; border-top: 1px solid #f1f5f9; }
+    .pagination-wrap {
+        padding: 16px 20px;
+        border-top: 1px solid #f1f5f9;
+    }
 
     @media (max-width: 768px) {
         .products-table { display: none; }
-        .mobile-cards   { display: block; }
+        .mobile-cards { display: block; }
     }
 
     @media (max-width: 480px) {
@@ -251,8 +301,6 @@
 </div>
 
 <div class="table-card">
-
-    {{-- ── Desktop Table ── --}}
     <table class="products-table">
         <thead>
             <tr>
@@ -264,34 +312,42 @@
                 <th class="center">Aksi</th>
             </tr>
         </thead>
+
         <tbody>
             @forelse ($products as $product)
                 <tr>
                     <td>
                         <div style="display:flex;align-items:center;gap:12px;">
-                           @if ($product->image)
+                            @if ($product->image)
                                 <img src="{{ img_url($product->image) }}" alt="{{ $product->name }}" class="product-thumb">
                             @else
                                 <div class="product-thumb-placeholder"><i class="fas fa-image"></i></div>
                             @endif
+
                             <span class="product-name">{{ $product->name }}</span>
                         </div>
                     </td>
+
                     <td>
-                        @if($product->is_promo && $product->discount_price)
+                        @if ($product->is_promo && $product->discount_price)
                             <p class="price-original">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
                             <p class="price-promo">Rp {{ number_format($product->discount_price, 0, ',', '.') }}</p>
-                            <span class="price-discount-tag">-{{ round((($product->price - $product->discount_price) / $product->price) * 100) }}%</span>
+                            <span class="price-discount-tag">
+                                -{{ round((($product->price - $product->discount_price) / $product->price) * 100) }}%
+                            </span>
                         @else
                             Rp {{ number_format($product->price, 0, ',', '.') }}
                         @endif
                     </td>
+
                     <td>
                         <span class="stock-badge {{ $product->stock > 10 ? 'good' : ($product->stock > 0 ? 'warn' : 'empty') }}">
                             {{ $product->stock }}
                         </span>
                     </td>
+
                     <td>{{ $product->category ?? '-' }}</td>
+
                     <td class="center">
                         @if ($product->is_cod_available)
                             <span class="cod-badge yes"><i class="fas fa-check"></i> Ya</span>
@@ -299,14 +355,18 @@
                             <span class="cod-badge no"><i class="fas fa-times"></i> Tidak</span>
                         @endif
                     </td>
+
                     <td class="center">
                         <div class="action-btns">
                             <a href="{{ route('admin.products.edit', $product) }}" class="btn-edit">
                                 <i class="fas fa-pen"></i> Edit
                             </a>
+
                             <form action="{{ route('admin.products.destroy', $product) }}" method="POST"
-                                  onsubmit="return confirm('Yakin hapus produk ini?');">
-                                @csrf @method('DELETE')
+                                onsubmit="return confirm('Yakin hapus produk ini?');">
+                                @csrf
+                                @method('DELETE')
+
                                 <button type="submit" class="btn-delete">
                                     <i class="fas fa-trash"></i> Hapus
                                 </button>
@@ -327,52 +387,57 @@
         </tbody>
     </table>
 
-    {{-- ── Mobile Cards ── --}}
     <div class="mobile-cards">
         @forelse ($products as $product)
             <div class="product-card">
                 <div class="product-card-header">
                     @if ($product->image)
-                        <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="product-thumb">
+                        <img src="{{ img_url($product->image) }}" alt="{{ $product->name }}" class="product-thumb">
                     @else
-                        <div class="product-thumb-placeholder">
-                            <i class="fas fa-image"></i>
-                        </div>
+                        <div class="product-thumb-placeholder"><i class="fas fa-image"></i></div>
                     @endif
+
                     <div>
                         <p class="product-name" style="font-size:14px;">{{ $product->name }}</p>
-                        <p style="font-size:12px;color:#64748b;margin-top:2px;">{{ $product->category ?? '-' }}</p>
+                        <p style="font-size:12px;color:#64748b;margin:2px 0 0;">{{ $product->category ?? '-' }}</p>
                     </div>
                 </div>
 
                 <div class="product-card-meta">
                     <div class="meta-item">
                         <p class="meta-label">Harga</p>
-                        @if($product->is_promo && $product->discount_price)
-                            <p class="price-original" style="font-size:11px;">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
-                            <p class="price-promo" style="font-size:13px;">Rp {{ number_format($product->discount_price, 0, ',', '.') }}</p>
+
+                        @if ($product->is_promo && $product->discount_price)
+                            <p class="price-original">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+                            <p class="price-promo">Rp {{ number_format($product->discount_price, 0, ',', '.') }}</p>
                         @else
                             <p class="meta-value">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
                         @endif
                     </div>
+
                     <div class="meta-item">
                         <p class="meta-label">Stok</p>
                         <span class="stock-badge {{ $product->stock > 10 ? 'good' : ($product->stock > 0 ? 'warn' : 'empty') }}">
                             {{ $product->stock }}
                         </span>
                     </div>
+
                     <div class="meta-item">
                         <p class="meta-label">COD</p>
+
                         @if ($product->is_cod_available)
                             <span class="cod-badge yes"><i class="fas fa-check"></i> Ya</span>
                         @else
                             <span class="cod-badge no"><i class="fas fa-times"></i> Tidak</span>
                         @endif
                     </div>
-                    @if($product->is_promo && $product->discount_price)
+
+                    @if ($product->is_promo && $product->discount_price)
                         <div class="meta-item">
                             <p class="meta-label">Diskon</p>
-                            <span class="price-discount-tag">-{{ round((($product->price - $product->discount_price) / $product->price) * 100) }}%</span>
+                            <span class="price-discount-tag">
+                                -{{ round((($product->price - $product->discount_price) / $product->price) * 100) }}%
+                            </span>
                         </div>
                     @endif
                 </div>
@@ -381,9 +446,12 @@
                     <a href="{{ route('admin.products.edit', $product) }}" class="btn-edit">
                         <i class="fas fa-pen"></i> Edit
                     </a>
+
                     <form action="{{ route('admin.products.destroy', $product) }}" method="POST"
-                          onsubmit="return confirm('Yakin hapus produk ini?');" style="flex:1;">
-                        @csrf @method('DELETE')
+                        onsubmit="return confirm('Yakin hapus produk ini?');" style="flex:1;">
+                        @csrf
+                        @method('DELETE')
+
                         <button type="submit" class="btn-delete" style="width:100%;justify-content:center;">
                             <i class="fas fa-trash"></i> Hapus
                         </button>
@@ -398,12 +466,10 @@
         @endforelse
     </div>
 
-    {{-- Pagination --}}
-    @if($products->hasPages())
+    @if ($products->hasPages())
         <div class="pagination-wrap">
             {{ $products->links() }}
         </div>
     @endif
 </div>
-
 @endsection
