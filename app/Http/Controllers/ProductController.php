@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
-
+use App\Models\Banner;
 class ProductController extends Controller
 {
     public function index(Request $request)
@@ -45,7 +45,7 @@ class ProductController extends Controller
             'popular'    => $query->orderBy('total_sold', 'desc'),
             default      => $query->latest(),
         };
-
+        $banners = Banner::active()->limit(5)->get();
         $products = $query->get();
         $maxPrice = Product::max('price');
         $hotItems = Product::where('total_sold', '>', 0)
@@ -57,7 +57,7 @@ class ProductController extends Controller
             return view('products._grid', compact('products', 'hotItems'));
         }
 
-        return view('products.index', compact('products', 'maxPrice', 'hotItems'));
+        return view('products.index', compact('products', 'maxPrice', 'hotItems', 'banners'));
     }
 
     public function promo()

@@ -381,6 +381,10 @@
                 <div class="nav-icon"><i class="fas fa-clipboard-check"></i></div>
                 <span>Verifikasi Pesanan</span>
             </a>
+            <a href="{{ route('admin.banners.index') }}" class="nav-item {{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                <div class="nav-icon"><i class="fas fa-images"></i></div>
+                <span>Kelola Banner</span>
+            </a>
         </nav>
 
         <div class="sidebar-section-label">Lainnya</div>

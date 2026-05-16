@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\BannerController;
 
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -37,7 +38,7 @@ Route::get('/admin/logout', fn() => redirect()->route('admin.login'));
 // Protected Admin Routes
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-
+    
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/', [AdminController::class, 'orders'])->name('index');
         Route::get('/{order}', [AdminController::class, 'showOrder'])->name('show');
@@ -53,6 +54,10 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::put('/{product}', [AdminController::class, 'updateProduct'])->name('update');
         Route::delete('/{product}', [AdminController::class, 'destroyProduct'])->name('destroy');
     });
+
+    // Banner di luar prefix products
+    Route::resource('banners', BannerController::class)->except(['show']);
+    Route::patch('banners/{banner}/toggle', [BannerController::class, 'toggleActive'])->name('banners.toggle');
 });
 // Route untuk halaman Tentang Kami
 Route::get('/about-us', function () {

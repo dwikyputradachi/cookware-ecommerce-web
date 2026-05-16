@@ -39,7 +39,7 @@
             <a href="/" class="flex flex-col items-start shrink-0 group">
                 <img src="{{ asset('img/logo-murazon.png') }}" class="h-6 md:h-7 w-auto object-contain mb-0.5 transition-transform group-hover:scale-105">
                 <div class="flex flex-col items-start leading-none">
-                    <span class="text-[9px] md:text-[10px] font-bold text-white tracking-tight uppercase">Murazon Shopping Market</span>
+                    <span class="text-[10px] md:text-[14px] font-medium text-white tracking-tight titlecase">Murazon Shopping Market</span>
                 </div>
             </a>
 
@@ -132,7 +132,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
             <div>
                 <img src="{{ asset('img/logo-murazon.png') }}" class="h-10 mb-4">
-                <p class="text-[11px] font-bold text-orange-600 uppercase mb-4 tracking-tighter">Murazon Shopping Market</p>
+                <p class="text-[16px] font-medium text-orange-600 tittlecase mb-4 tracking-tighter">Murazon Shopping Market</p>
                 <div class="space-y-2 text-sm text-gray-500 font-medium">
                     <p>Jam Operasional : 09.00 wib - 18.00 wib</p>
                     <p>Whatsapp : +62 812-703-0826</p>
@@ -162,7 +162,7 @@
             </div>
         </div>
         <div class="border-t border-gray-100 pt-8 text-center">
-            <p class="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">&copy; 2026 MURAZON • KUALITAS PREMIUM PERLENGKAPAN DAPUR</p>
+            <p class="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">&copy; 2026 MURAZON • Corporation</p>
         </div>
     </div>
 </footer>

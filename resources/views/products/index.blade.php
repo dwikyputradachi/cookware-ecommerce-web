@@ -35,40 +35,116 @@
 
     {{-- 1. HERO --}}
     <div class="container mx-auto px-4 pt-8">
-        <div class="rounded-[3rem] p-10 md:p-20 text-white shadow-2xl border-4 border-white relative overflow-hidden" 
-             style="background: linear-gradient(135deg, #4c2203 0%, #a1500a 40%, #E1700F 100%);">
-            <div class="absolute w-100 h-100 rounded-full blur-[100px] opacity-20 -top-20 -right-20 pointer-events-none" 
-                 style="background: radial-gradient(circle, #FDBA74 0%, transparent 70%);"></div>
-            <div class="relative z-10 grid md:grid-cols-2 gap-10 items-center">
-                <div class="space-y-6">
-                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/10 shadow-inner">
-                        <i data-lucide="crown" class="w-4 h-4 text-orange-300"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-orange-100">The Culinary Standard</span>
-                    </div>
-                    <h2 class="text-4xl md:text-7xl font-black italic uppercase leading-[0.9] tracking-tighter text-white">
-                        Authentic<br><span style="color: #FDBA74;">Cookware</span>
-                    </h2>
-                    <div class="p-5 rounded-2xl bg-black/20 backdrop-blur-sm border border-white/5 shadow-lg max-w-xl">
-                        <p class="text-orange-50 text-sm md:text-lg font-medium opacity-90 leading-relaxed">
-                            Mewujudkan kelezatan bintang lima di dapur Anda. Didesain dengan presisi, material premium, dan durabilitas tanpa kompromi untuk performa masak terbaik.
-                        </p>
-                    </div>
-                    <div class="pt-4 flex flex-wrap gap-4 items-center">
-                        <a href="#koleksi" class="px-8 py-3.5 bg-white text-gray-950 rounded-full font-extrabold text-sm uppercase tracking-wider shadow-lg hover:bg-orange-50 transition-all flex items-center gap-2 group">
-                            Jelajahi Produk
-                            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                        </a>
-                        <span class="text-xs text-orange-200 font-bold tracking-wide uppercase">Garansi Seumur Hidup*</span>
-                    </div>
+        @if($banners->isNotEmpty())
+        <div class="relative rounded-4xl overflow-hidden shadow-2xl"
+            x-data="carousel({{ $banners->count() }})"
+            x-init="init()"
+            style="height: 420px;"
+            @touchstart.passive="touchStart($event)"
+            @touchend.passive="touchEnd($event)">
+
+            {{-- Slides --}}
+            <div class="relative w-full h-full">
+                @foreach($banners as $i => $banner)
+                <div class="absolute inset-0 transition-opacity duration-700"
+                    :class="current === {{ $i }} ? 'opacity-100 z-10' : 'opacity-0 z-0'">
+                    @if($banner->link)
+                    <a href="{{ $banner->link }}">
+                    @endif
+                        <img src="{{ $banner->image }}"
+                            alt="{{ $banner->title }}"
+                            class="w-full h-full object-cover">
+                        @if($banner->title)
+                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-linear-to-t from-black/50 to-transparent">
+                            <p class="text-white font-bold text-lg md:text-2xl drop-shadow">{{ $banner->title }}</p>
+                        </div>
+                        @endif
+                    @if($banner->link)
+                    </a>
+                    @endif
                 </div>
-                <div class="relative flex justify-center md:justify-end">
-                    <div class="relative z-10 transform md:translate-x-10 md:rotate-6">
-                        <i data-lucide="cooking-pot" class="w-48 h-48 md:w-80 md:h-80 text-orange-300/30 stroke-[1.5]"></i>
-                    </div>
-                </div>
+                @endforeach
+            </div>
+
+            {{-- Prev --}}
+            <button @click="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition">
+                <i class="fas fa-chevron-left text-sm"></i>
+            </button>
+
+            {{-- Next --}}
+            <button @click="next()" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition">
+                <i class="fas fa-chevron-right text-sm"></i>
+            </button>
+
+            {{-- Dots --}}
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                @foreach($banners as $i => $banner)
+                <button @click="goTo({{ $i }})"
+                        :class="current === {{ $i }} ? 'bg-white w-6' : 'bg-white/50 w-2'"
+                        class="h-2 rounded-full transition-all duration-300"></button>
+                @endforeach
             </div>
         </div>
+
+        {{-- Fallback kalau tidak ada banner --}}
+        @else
+        <div class="rounded-[3rem] p-10 md:p-20 text-white shadow-2xl border-4 border-white relative overflow-hidden"
+            style="background: linear-gradient(135deg, #4c2203 0%, #a1500a 40%, #E1700F 100%);">
+            <div class="relative z-10 text-center">
+                <h2 class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-white mb-3">
+                    Authentic <span style="color: #FDBA74;">Cookware</span>
+                </h2>
+                <p class="text-orange-100 text-sm md:text-lg opacity-90">
+                    Peralatan dapur berkualitas untuk kelezatan bintang lima
+                </p>
+            </div>
+        </div>
+        @endif
     </div>
+
+    @push('scripts')
+    <script>
+    function carousel(total) {
+        return {
+            current: 0,
+            total: total,
+            timer: null,
+            startX: 0,
+            init() {
+                this.startAuto();
+            },
+            startAuto() {
+                this.timer = setInterval(() => this.next(), 4000);
+            },
+            resetAuto() {
+                clearInterval(this.timer);
+                this.startAuto();
+            },  
+            next() {
+                this.current = (this.current + 1) % this.total;
+            },
+            prev() {
+                this.current = (this.current - 1 + this.total) % this.total;
+                this.resetAuto();
+            },
+            goTo(i) {
+                this.current = i;
+                this.resetAuto();
+            },
+            touchStart(e) {
+                this.startX = e.touches[0].clientX;
+            },
+            touchEnd(e) {
+                const diff = this.startX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 40) {
+                    diff > 0 ? this.next() : this.prev();
+                    this.resetAuto();
+                }
+            }
+        }
+    }
+    </script>
+    @endpush
 
     {{-- 2. FILTER BAR --}}
     <div id="filter-section" class="container mx-auto px-4 mt-6" x-data="filterBar()">
