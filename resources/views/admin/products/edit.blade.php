@@ -1,3 +1,13 @@
+@php
+    use Illuminate\Support\Str;
+    function img_url($path) {
+        if (!$path) return asset('img/no-image.png');
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
+        }
+        return 'https://res.cloudinary.com/' . env('CLOUDINARY_CLOUD_NAME') . '/image/upload/' . $path;
+    }
+@endphp
 @extends('admin.layout')
 
 @section('title', 'Edit Produk')
@@ -325,7 +335,7 @@
                     @if ($product->image)
                         <div class="current-image-box">
                             <p><i class="fas fa-image" style="margin-right:5px;"></i>Gambar saat ini:</p>
-                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
+                            <img src="{{ img_url($product->image) }}" alt="{{ $product->name }}"
                                 style="height:90px;width:90px;object-fit:cover;border-radius:9px;">
                         </div>
                     @endif

@@ -1,3 +1,13 @@
+@php
+    use Illuminate\Support\Str;
+    function img_url($path) {
+        if (!$path) return asset('img/no-image.png');
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
+        }
+        return 'https://res.cloudinary.com/' . env('CLOUDINARY_CLOUD_NAME') . '/image/upload/' . $path;
+    }
+@endphp
 @extends('admin.layout')
 
 @section('title', 'Tambah Produk')

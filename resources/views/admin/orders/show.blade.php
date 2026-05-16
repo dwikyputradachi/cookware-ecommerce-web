@@ -1,3 +1,13 @@
+@php
+    use Illuminate\Support\Str;
+    function img_url($path) {
+        if (!$path) return asset('img/no-image.png');
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
+        }
+        return 'https://res.cloudinary.com/' . env('CLOUDINARY_CLOUD_NAME') . '/image/upload/' . $path;
+    }
+@endphp
 @extends('admin.layout')
 
 @section('title', 'Detail Pesanan #' . $order->id)
@@ -298,7 +308,7 @@
         <div class="detail-card">
             <p class="card-title"><i class="fas fa-receipt"></i> Bukti Pembayaran</p>
             @if($order->payment_proof)
-                <img src="{{ asset('storage/' . $order->payment_proof) }}"
+                <img src="{{ img_url($order->payment_proof) }}"
                      alt="Bukti Pembayaran" class="proof-img">
             @else
                 <div class="no-proof">

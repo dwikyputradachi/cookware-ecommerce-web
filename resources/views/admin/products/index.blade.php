@@ -1,3 +1,13 @@
+@php
+    use Illuminate\Support\Str;
+    function img_url($path) {
+        if (!$path) return asset('img/no-image.png');
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return $path;
+        }
+        return 'https://res.cloudinary.com/' . env('CLOUDINARY_CLOUD_NAME') . '/image/upload/' . $path;
+    }
+@endphp
 @extends('admin.layout')
 
 @section('title', 'Kelola Produk')
@@ -259,8 +269,8 @@
                 <tr>
                     <td>
                         <div style="display:flex;align-items:center;gap:12px;">
-                            @if ($product->image)
-                                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="product-thumb">
+                           @if ($product->image)
+                                <img src="{{ img_url($product->image) }}" alt="{{ $product->name }}" class="product-thumb">
                             @else
                                 <div class="product-thumb-placeholder"><i class="fas fa-image"></i></div>
                             @endif
@@ -323,9 +333,11 @@
             <div class="product-card">
                 <div class="product-card-header">
                     @if ($product->image)
-                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="product-thumb">
+                        <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="product-thumb">
                     @else
-                        <div class="product-thumb-placeholder"><i class="fas fa-image"></i></div>
+                        <div class="product-thumb-placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
                     @endif
                     <div>
                         <p class="product-name" style="font-size:14px;">{{ $product->name }}</p>
