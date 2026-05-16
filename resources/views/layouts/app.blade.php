@@ -146,7 +146,7 @@
                     <a href="{{ route('return') }}" class="block hover:text-orange-600 transition-colors">Ketentuan return barang dan penggantian uang</a>
                 </div>
                 <div class="space-y-3">
-                    <a href="{{ route('bantuan') }}" class="block hover:text-orange-600 transition-colors">Bantuan Belanja</a>
+                    <a href="{{ route('panduan') }}" class="block hover:text-orange-600 transition-colors">Panduan Belanja</a>
                     <a href="{{ route('penipuan') }}" class="block hover:text-orange-600 transition-colors">Waspada Penipuan</a>
                    
                 </div>
