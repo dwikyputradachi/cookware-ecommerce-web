@@ -39,7 +39,7 @@ class AppServiceProvider extends ServiceProvider
             }
 
             if (Schema::hasTable('settings')) {
-                $siteSettings = Setting::pluck('value', 'key')->all();
+                $siteSettings = Setting::pluck('value', 'settings_key')->all();
             }
 
             $view->with(compact('categories', 'siteSettings'));

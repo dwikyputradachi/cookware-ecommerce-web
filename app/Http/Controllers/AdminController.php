@@ -159,7 +159,7 @@ class AdminController extends Controller
      */
     public function settings()
     {
-        $settings = Setting::pluck('value', 'key')->all();
+        $settings = Setting::pluck('value', 'settings_key')->all();
         return view('admin.settings.index', compact('settings'));
     }
 
@@ -177,7 +177,7 @@ class AdminController extends Controller
         ]);
 
         foreach ($validated as $key => $value) {
-            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+            Setting::updateOrCreate(['settings_key' => $key], ['value' => $value]);
         }
 
         return redirect()->route('admin.settings.index')

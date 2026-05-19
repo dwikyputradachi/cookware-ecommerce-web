@@ -12,7 +12,7 @@ class Setting extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'key',
+        'settings_key',
         'value',
     ];
 
