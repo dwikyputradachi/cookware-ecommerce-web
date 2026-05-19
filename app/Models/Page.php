@@ -48,7 +48,6 @@ class Page extends Model
                     'title' => $title,
                     'content' => '<p class="text-gray-600 leading-relaxed">Konten halaman ini belum tersedia. Silakan edit melalui panel admin.</p>',
                     'is_active' => true,
-                    'created_by' => $creatorId,
                 ]
             );
         }
