@@ -385,6 +385,14 @@
                 <div class="nav-icon"><i class="fas fa-images"></i></div>
                 <span>Kelola Banner</span>
             </a>
+            <a href="{{ route('admin.pages.index') }}" class="nav-item {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+                <div class="nav-icon"><i class="fas fa-file-lines"></i></div>
+                <span>Kelola Pusat Informasi</span>
+            </a>
+            <a href="{{ route('admin.settings.index') }}" class="nav-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                <span>Kelola Footer</span>
+            </a>
         </nav>
 
         <div class="sidebar-section-label">Lainnya</div>

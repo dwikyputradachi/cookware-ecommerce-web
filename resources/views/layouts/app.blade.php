@@ -132,11 +132,11 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
             <div>
                 <img src="{{ asset('img/logo-murazon.png') }}" class="h-10 mb-4">
-                <p class="text-[16px] font-medium text-orange-600 tittlecase mb-4 tracking-tighter">Murazon Shopping Market</p>
+                <p class="text-[16px] font-medium text-orange-600 tittlecase mb-4 tracking-tighter">{{ $siteSettings['site_name'] ?? 'Murazon Shopping Market' }}</p>
                 <div class="space-y-2 text-sm text-gray-500 font-medium">
-                    <p>Jam Operasional : 09.00 wib - 18.00 wib</p>
-                    <p>Whatsapp : +62 812-703-0826</p>
-                    <p>E-mail : customer_service@murazon.com</p>
+                    <p>Jam Operasional : {{ $siteSettings['operational_hours'] ?? '09.00 WIB - 18.00 WIB' }}</p>
+                    <p>Whatsapp : {{ $siteSettings['whatsapp'] ?? '+62 812-703-0826' }}</p>
+                    <p>E-mail : {{ $siteSettings['email'] ?? 'customer_service@murazon.com' }}</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4 text-sm font-semibold text-gray-600">
@@ -153,10 +153,10 @@
             </div>
             <div class="flex flex-col items-start md:items-end gap-6">
                 <div class="flex gap-3">
-                    <a href="#" class="footer-social-icon w-10 h-10 bg-[#3b5998] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="footer-social-icon w-10 h-10 bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="footer-social-icon w-10 h-10 bg-[#25D366] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-whatsapp"></i></a>
-                    <a href="#" class="footer-social-icon w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-tiktok"></i></a>
+                    <a href="{{ $siteSettings['facebook_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-[#3b5998] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="{{ $siteSettings['instagram_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="{{ $siteSettings['whatsapp_url'] ?? 'https://wa.me/628127030826' }}" class="footer-social-icon w-10 h-10 bg-[#25D366] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    <a href="{{ $siteSettings['tiktok_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-tiktok"></i></a>
                 </div>
                 <div class="text-sm text-gray-400 font-bold tracking-[0.2em] uppercase">Ikuti Kami</div>
             </div>

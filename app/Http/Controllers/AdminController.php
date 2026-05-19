@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Order;
+use App\Models\Page;
+use App\Models\Setting;
 
 class AdminController extends Controller
 {
@@ -150,6 +152,82 @@ class AdminController extends Controller
 
         return redirect()->route('admin.products.index')
                          ->with('success', 'Produk berhasil dihapus!');
+    }
+
+    /**
+     * Site settings for footer and contact info
+     */
+    public function settings()
+    {
+        $settings = Setting::pluck('value', 'key')->all();
+        return view('admin.settings.index', compact('settings'));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'site_name' => 'required|string|max:255',
+            'operational_hours' => 'required|string|max:255',
+            'whatsapp' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'facebook_url' => 'nullable|url|max:255',
+            'instagram_url' => 'nullable|url|max:255',
+            'whatsapp_url' => 'nullable|url|max:255',
+            'tiktok_url' => 'nullable|url|max:255',
+        ]);
+
+        foreach ($validated as $key => $value) {
+            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+        }
+
+        return redirect()->route('admin.settings.index')
+                         ->with('success', 'Pengaturan footer berhasil diperbarui!');
+    }
+
+    /**
+     * List pages for admin content management
+     */
+    public function indexPages()
+    {
+        Page::ensureDefaultPagesExist();
+
+        $pageKeys = array_keys(Page::defaultPages());
+        $orderCase = implode("', '", $pageKeys);
+
+        $pages = Page::whereIn('slug', $pageKeys)
+            ->orderByRaw("FIELD(slug, '$orderCase')")
+            ->get();
+
+        return view('admin.pages.index', compact('pages'));
+    }
+
+    /**
+     * Show page edit form
+     */
+    public function editPage(Page $page)
+    {
+        return view('admin.pages.edit', compact('page'));
+    }
+
+    /**
+     * Update page content
+     */
+    public function updatePage(Request $request, Page $page)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'is_active' => 'sometimes|boolean',
+        ]);
+
+        $page->update([
+            'title' => $validated['title'],
+            'content' => $validated['content'],
+            'is_active' => $request->has('is_active') ? 1 : 0,
+        ]);
+
+        return redirect()->route('admin.pages.index')
+                         ->with('success', 'Halaman berhasil diperbarui!');
     }
 
     // ORDER MANAGEMENT

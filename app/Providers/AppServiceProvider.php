@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\Product;
+use App\Models\Setting;
 use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // 2. View Composer untuk Kategori Produk
+        // 2. View Composer untuk Kategori Produk dan Pengaturan Situs
         View::composer('*', function ($view) {
             $categories = Product::distinct()
                 ->pluck('category')
@@ -38,7 +39,9 @@ class AppServiceProvider extends ServiceProvider
                 ])
                 ->prepend(['name' => 'Semua', 'img' => 'all-products.png']);
 
-            $view->with('categories', $categories);
+            $siteSettings = Setting::pluck('value', 'key')->all();
+
+            $view->with(compact('categories', 'siteSettings'));
         });
     }
 }
