@@ -36,11 +36,14 @@
     <div class="container mx-auto px-4 py-3">
         <div class="flex items-center justify-between gap-4">
             
-            <a href="/" class="flex flex-col items-start shrink-0 group">
-                <img src="{{ asset('img/logo-murazon.png') }}" class="h-6 md:h-7 w-auto object-contain mb-0.5 transition-transform group-hover:scale-105">
-                <div class="flex flex-col items-start leading-none">
-                    <span class="text-[10px] md:text-[14px] font-medium text-white tracking-tight titlecase">Murazon Shopping Market</span>
-                </div>
+            <a href="/" class="inline-flex flex-col items-start shrink-0 group w-fit">
+                <img 
+                    src="{{ asset('img/logo-murazon.png') }}" 
+                    alt="Murazon"
+                    class="h-6 md:h-7 w-auto object-contain mb-0.5 transition-transform group-hover:scale-105">
+                <span class="block w-full text-[9px] md:text-[12px] font-regular text-white leading-none tracking-[0.06wem] text-center">
+                    Murazon Shopping Market
+                </span>
             </a>
 
             <div class="hidden lg:flex flex-1 max-w-xl items-center bg-white/10 rounded-xl border border-white/20 overflow-visible relative">
