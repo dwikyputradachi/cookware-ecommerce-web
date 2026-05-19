@@ -8,6 +8,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\PageController;
 
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -58,28 +59,21 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     // Banner di luar prefix products
     Route::resource('banners', BannerController::class)->except(['show']);
     Route::patch('banners/{banner}/toggle', [BannerController::class, 'toggleActive'])->name('banners.toggle');
+    Route::get('/pages', [AdminController::class, 'indexPages'])->name('pages.index');
+    Route::get('/pages/{page}/edit', [AdminController::class, 'editPage'])->name('pages.edit');
+    Route::put('/pages/{page}', [AdminController::class, 'updatePage'])->name('pages.update');
+    Route::get('/settings', [AdminController::class, 'settings'])->name('settings.index');
+    Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
 });
-// Route untuk halaman Tentang Kami
-Route::get('/about-us', function () {
-    return view('aboutus'); 
-})->name('about.us');
+// Route untuk halaman informasi dinamis
+Route::get('/about-us', [PageController::class, 'show'])->name('about.us')->defaults('slug', 'about-us');
 
-Route::get('/garansi', function () {
-    return view('garansi');
-})->name('garansi');
+Route::get('/garansi', [PageController::class, 'show'])->name('garansi')->defaults('slug', 'garansi');
 
-Route::get('/bantuan', function () {
-    return view('bantuan');
-})->name('bantuan');
+Route::get('/bantuan', [PageController::class, 'show'])->name('bantuan')->defaults('slug', 'bantuan');
 
-Route::get('/penipuan', function () {
-    return view('penipuan');
-})->name('penipuan');
+Route::get('/penipuan', [PageController::class, 'show'])->name('penipuan')->defaults('slug', 'penipuan');
 
-Route::get('/panduan', function () {
-    return view('panduan');
-})->name('panduan');
+Route::get('/panduan', [PageController::class, 'show'])->name('panduan')->defaults('slug', 'panduan');
 
-Route::get('/return', function () {
-    return view('returnbarang');
-})->name('return');
+Route::get('/return', [PageController::class, 'show'])->name('return')->defaults('slug', 'return');

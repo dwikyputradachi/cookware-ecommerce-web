@@ -5,9 +5,9 @@
         {{-- Navigasi --}}
         <a href="{{ route('about.us') }}" 
            class="flex items-center justify-between px-5 py-4 rounded-2xl text-sm transition-all duration-200 
-           {{ $active == 'about' ? 'bg-orange-600 text-white font-bold shadow-lg shadow-orange-100' : 'text-gray-500 font-semibold hover:bg-gray-50 hover:text-orange-600' }}">
+           {{ $active == 'about-us' ? 'bg-orange-600 text-white font-bold shadow-lg shadow-orange-100' : 'text-gray-500 font-semibold hover:bg-gray-50 hover:text-orange-600' }}">
             Tentang Kami 
-            <i data-lucide="chevron-right" class="w-4 h-4 {{ $active == 'about' ? 'opacity-100' : 'opacity-30' }}"></i>
+            <i data-lucide="chevron-right" class="w-4 h-4 {{ $active == 'about-us' ? 'opacity-100' : 'opacity-30' }}"></i>
         </a>
         <a href="{{ route('garansi') }}" 
            class="flex items-center justify-between px-5 py-4 rounded-2xl text-sm transition-all duration-200 
