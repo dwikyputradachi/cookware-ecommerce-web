@@ -29,7 +29,7 @@
     Maksimal 5 banner aktif ditampilkan di homepage. Atur urutan dengan mengubah nilai <strong>Sort Order</strong>.
 </div>
 
-<div class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+<div class="space-y-4">
     @if($banners->isEmpty())
     <div class="py-16 text-center text-gray-400">
         <i class="fas fa-image text-4xl mb-3 block opacity-30"></i>
@@ -38,7 +38,7 @@
     @else
     <div class="space-y-4 sm:hidden">
         @foreach($banners as $banner)
-        <div class="rounded-2xl border border-gray-100 bg-gray-50 p-4 shadow-sm">
+        <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <div class="flex items-start gap-4">
                 <img src="{{ $banner->image }}" alt="{{ $banner->title }}" class="w-24 h-24 rounded-xl object-cover border border-gray-200">
                 <div class="min-w-0 flex-1">
@@ -49,10 +49,10 @@
                     </a>
                     @endif
                     <div class="mt-3 flex flex-wrap gap-2 text-xs">
-                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-gray-600">
+                        <span class="inline-flex items-center rounded-full bg-gray-100 px-3 py-1.5 text-gray-600">
                             Order {{ $banner->sort_order }}
                         </span>
-                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {{ $banner->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+                        <span class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold {{ $banner->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
                             {{ $banner->is_active ? 'Aktif' : 'Nonaktif' }}
                         </span>
                     </div>
