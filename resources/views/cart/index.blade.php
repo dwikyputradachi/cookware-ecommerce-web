@@ -100,8 +100,8 @@
                     <p class="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-3 text-center">Pilih Pembayaran</p>
                     <div class="grid grid-cols-2 gap-2">
                         @foreach($payments as $pm)
-                            @if($pm->key !== 'cod' || $canCod)
-                            <button onclick="selectPayment('{{ $pm->key }}', this)"
+                            @if($pm->payment_key !== 'cod' || $canCod)
+                            <button onclick="selectPayment('{{ $pm->payment_key }}', this)"
                                     class="payment-opt p-3 rounded-xl border border-gray-100 hover:border-orange-200 transition text-center group">
                                 @if($pm->qr_image)
                                     <img src="{{ $pm->qr_image }}" class="w-5 h-5 mx-auto mb-1 object-contain">
@@ -109,7 +109,7 @@
                                     @php
                                         $icons = ['bca'=>'landmark','dana'=>'wallet','qris'=>'qr-code','cod'=>'package'];
                                     @endphp
-                                    <i data-lucide="{{ $icons[$pm->key] ?? 'credit-card' }}" class="w-4 h-4 mx-auto mb-1 text-gray-400"></i>
+                                    <i data-lucide="{{ $icons[$pm->payment_key] ?? 'credit-card' }}" class="w-4 h-4 mx-auto mb-1 text-gray-400"></i>
                                 @endif
                                 <span class="text-[9px] font-black uppercase text-gray-500">{{ $pm->label }}</span>
                             </button>
@@ -183,7 +183,7 @@ let selectedMethod = '';
 
 const paymentDetails = {
     @foreach($payments as $pm)
-    '{{ $pm->key }}': {
+    '{{ $pm->payment_key }}': {
         title: @json($pm->label),
         number: @json($pm->account_number ?? 'Bayar di tempat'),
         name: @json($pm->account_name ?? 'Murazon Cookware'),

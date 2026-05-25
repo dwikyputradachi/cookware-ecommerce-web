@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 class PaymentSetting extends Model
 {
     protected $fillable = [
-        'key', 'label', 'account_number',
+        'payment_key', 'label', 'account_number',
         'account_name', 'qr_image', 'is_active'
     ];
 
