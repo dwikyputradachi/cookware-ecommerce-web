@@ -169,7 +169,13 @@
     }
 
     /* ── Action buttons ── */
-    .verify-card .card-title { margin-bottom: 14px; }
+    .verify-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .verify-card .card-title { margin-bottom: 0; }
 
     .btn-approve, .btn-reject {
         display: flex;
@@ -177,15 +183,16 @@
         justify-content: center;
         gap: 8px;
         width: 100%;
-        padding: 12px;
+        padding: 14px;
         border: none;
-        border-radius: 9px;
+        border-radius: 12px;
         font-family: inherit;
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
         transition: opacity 0.2s, transform 0.15s;
-        margin-bottom: 10px;
+        margin: 0;
+        min-height: 48px;
     }
 
     .btn-approve:last-child,
