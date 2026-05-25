@@ -9,6 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentSettingController;
 
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -54,6 +55,12 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::get('/{product}/edit', [AdminController::class, 'editProduct'])->name('edit');
         Route::put('/{product}', [AdminController::class, 'updateProduct'])->name('update');
         Route::delete('/{product}', [AdminController::class, 'destroyProduct'])->name('destroy');
+    });
+    Route::prefix('payments')->name('payments.')->group(function () {
+    Route::get('/', [PaymentSettingController::class, 'index'])->name('index');
+    Route::get('/{payment}/edit', [PaymentSettingController::class, 'edit'])->name('edit');
+    Route::put('/{payment}', [PaymentSettingController::class, 'update'])->name('update');
+    Route::patch('/{payment}/toggle', [PaymentSettingController::class, 'toggleActive'])->name('toggle');
     });
 
     // Banner di luar prefix products

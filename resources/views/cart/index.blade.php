@@ -95,30 +95,26 @@
                     <textarea id="cust_address" placeholder="ALAMAT LENGKAP" rows="2" class="w-full pl-4 pr-4 py-3 rounded-xl border border-gray-100 text-[11px] font-bold uppercase tracking-wider focus:ring-1 focus:ring-[#E1700F] outline-none bg-gray-50/50"></textarea>
                 </div>
 
-                {{-- Metode Pembayaran --}}
+               {{-- Metode Pembayaran --}}
                 <div class="mb-6">
                     <p class="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-3 text-center">Pilih Pembayaran</p>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="selectPayment('bca', this)" class="payment-opt p-3 rounded-xl border border-gray-100 hover:border-orange-200 transition text-center group">
-                            <i data-lucide="landmark" class="w-4 h-4 mx-auto mb-1 text-gray-400 group-[.selected]:text-blue-600"></i>
-                            <span class="text-[9px] font-black uppercase text-gray-500">Transfer BCA</span>
-                        </button>
-                        <button onclick="selectPayment('dana', this)" class="payment-opt p-3 rounded-xl border border-gray-100 hover:border-orange-200 transition text-center group">
-                            <i data-lucide="wallet" class="w-4 h-4 mx-auto mb-1 text-gray-400 group-[.selected]:text-blue-400"></i>
-                            <span class="text-[9px] font-black uppercase text-gray-500">Akun DANA</span>
-                        </button>
-                        <button onclick="selectPayment('qris', this)" class="payment-opt p-3 rounded-xl border border-gray-100 hover:border-orange-200 transition text-center group">
-                            <i data-lucide="qr-code" class="w-4 h-4 mx-auto mb-1 text-gray-400 group-[.selected]:text-red-500"></i>
-                            <span class="text-[9px] font-black uppercase text-gray-500">QRIS</span>
-                        </button>
-                        
-                        {{-- TOMBOL COD (Hanya muncul jika semua barang support COD) --}}
-                        @if($canCod)
-                        <button onclick="selectPayment('cod', this)" class="payment-opt p-3 rounded-xl border border-gray-100 hover:border-orange-200 transition text-center group">
-                            <i data-lucide="package" class="w-4 h-4 mx-auto mb-1 text-gray-400 group-[.selected]:text-orange-500"></i>
-                            <span class="text-[9px] font-black uppercase text-gray-500">COD</span>
-                        </button>
-                        @endif
+                        @foreach($payments as $pm)
+                            @if($pm->key !== 'cod' || $canCod)
+                            <button onclick="selectPayment('{{ $pm->key }}', this)"
+                                    class="payment-opt p-3 rounded-xl border border-gray-100 hover:border-orange-200 transition text-center group">
+                                @if($pm->qr_image)
+                                    <img src="{{ $pm->qr_image }}" class="w-5 h-5 mx-auto mb-1 object-contain">
+                                @else
+                                    @php
+                                        $icons = ['bca'=>'landmark','dana'=>'wallet','qris'=>'qr-code','cod'=>'package'];
+                                    @endphp
+                                    <i data-lucide="{{ $icons[$pm->key] ?? 'credit-card' }}" class="w-4 h-4 mx-auto mb-1 text-gray-400"></i>
+                                @endif
+                                <span class="text-[9px] font-black uppercase text-gray-500">{{ $pm->label }}</span>
+                            </button>
+                            @endif
+                        @endforeach
                     </div>
                 </div>
 
@@ -133,7 +129,6 @@
                                     <i data-lucide="copy" class="w-3 h-3 text-white"></i>
                                 </button>
                             </div>
-                            <p class="text-[8px] opacity-50 uppercase mt-1">A/N Murazon Cookware</p>
                         </div>
                     </div>
                     
@@ -187,10 +182,14 @@ const csrf = document.querySelector('meta[name="csrf-token"]').content;
 let selectedMethod = '';
 
 const paymentDetails = {
-    bca:  { title: 'REKENING BCA',        number: '8620-XXXX-XXXX' },
-    dana: { title: 'AKUN DANA (E-WALLET)', number: '0822-8545-5631' },
-    qris: { title: 'QRIS PEMBAYARAN',      number: 'SCAN-QR-MURAZON' },
-    cod:  { title: 'CASH ON DELIVERY',     number: 'BAYAR DI TEMPAT' },
+    @foreach($payments as $pm)
+    '{{ $pm->key }}': {
+        title: @json($pm->label),
+        number: @json($pm->account_number ?? 'Bayar di tempat'),
+        name: @json($pm->account_name ?? 'Murazon Cookware'),
+        qr: @json($pm->qr_image ?? ''),
+    },
+    @endforeach
 };
 
 // MODAL ENGINE
@@ -249,15 +248,59 @@ function closeModal() { overlay.classList.add('hidden'); }
 // PAYMENT SELECT
 function selectPayment(method, el) {
     selectedMethod = method;
+
     document.querySelectorAll('.payment-opt').forEach(b =>
-        b.classList.remove('selected', 'border-[#E1700F]', 'bg-orange-50/50'));
+        b.classList.remove('selected', 'border-[#E1700F]', 'bg-orange-50/50')
+    );
+
     el.classList.add('selected', 'border-[#E1700F]', 'bg-orange-50/50');
+
     const info = document.getElementById('payment-info');
-    document.getElementById('payment-title').textContent = paymentDetails[method].title;
-    document.getElementById('acc-number').textContent    = paymentDetails[method].number;
+    const detail = paymentDetails[method];
+
+    if (!detail) {
+        showModal({
+            type: 'danger',
+            title: 'Metode tidak ditemukan',
+            msg: 'Data metode pembayaran belum terbaca.',
+            buttons: [{ label: 'Tutup', primary: true }]
+        });
+        return;
+    }
+
+    document.getElementById('payment-title').textContent = detail.title;
+    document.getElementById('acc-number').textContent = detail.number;
+
+    let nameEl = document.getElementById('account-name-display');
+    if (!nameEl) {
+        nameEl = document.createElement('p');
+        nameEl.id = 'account-name-display';
+        nameEl.className = 'text-[8px] opacity-50 uppercase mt-1';
+        document.getElementById('acc-number').parentElement.parentElement.appendChild(nameEl);
+    }
+    nameEl.textContent = 'A/N ' + detail.name;
+
+    let qrEl = document.getElementById('qr-display');
+    if (!qrEl) {
+        qrEl = document.createElement('div');
+        qrEl.id = 'qr-display';
+        document.getElementById('acc-number').parentElement.parentElement.appendChild(qrEl);
+    }
+
+    qrEl.innerHTML = detail.qr
+    ? `
+        <div class="mt-3">
+            <p class="text-[10px] font-bold uppercase text-white/70 mb-2 text-center">Scan QR</p>
+            <div class="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm flex justify-center">
+                <img src="${detail.qr}" class="w-40 h-40 object-contain">
+            </div>
+        </div>
+      `
+    : '';
     info.classList.remove('hidden');
     document.getElementById('proof-container').classList.toggle('hidden', method === 'cod');
-    window.refreshIcons?.();
+
+    window.lucide?.createIcons?.();
 }
 
 document.getElementById('payment_proof').addEventListener('change', e => {
@@ -381,5 +424,6 @@ async function checkout() {
         showModal({ type: 'danger', title: 'Gagal', msg: 'Terjadi kesalahan sistem.', buttons: [{ label: 'Tutup', primary: true }]});
     }
 }
+
 </script>
 @endpush

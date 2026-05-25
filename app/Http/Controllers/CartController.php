@@ -8,7 +8,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Cloudinary\Cloudinary;
-
+use App\Models\PaymentSetting;
 class CartController extends Controller
 {
     private function uploadToCloudinary($file, $folder = 'general')
@@ -35,10 +35,11 @@ class CartController extends Controller
     {
         $cart = session()->get('cart', []);
         $cart = array_filter($cart, fn($item) => isset($item['quantity']));
+        
         session()->put('cart', $cart);
-        return view('cart.index', compact('cart'));
+          $payments = PaymentSetting::where('is_active', true)->orderBy('id')->get();
+        return view('cart.index', compact('payments', 'cart'));
     }
-
     public function add(Request $request, $id)
     {
         $product = Product::findOrFail($id);
