@@ -161,6 +161,15 @@
                     <a href="{{ $siteSettings['whatsapp_url'] ?? 'https://wa.me/628127030826' }}" class="footer-social-icon w-10 h-10 bg-[#25D366] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-whatsapp"></i></a>
                     <a href="{{ $siteSettings['tiktok_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-tiktok"></i></a>
                 </div>
+                {{-- QR Website --}}
+                <div class="flex flex-col items-center gap-1">
+                    <div class="w-16 h-16 bg-white rounded-xl p-1 shadow-md border border-gray-100">
+                        <img src="{{ asset('img/asset/murazonqr.png') }}"
+                            alt="Scan untuk buka website Murazon"
+                            class="w-full h-full object-contain">
+                    </div>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Scan QR</span>
+                </div>
                 <div class="text-sm text-gray-400 font-bold tracking-[0.2em] uppercase">Ikuti Kami</div>
             </div>
         </div>
