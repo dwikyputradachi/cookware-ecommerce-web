@@ -417,7 +417,7 @@ async function checkout() {
         `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
         `Terima kasih sudah berbelanja di Murazon! 🙏`;
 
-    window.open(`https://wa.me/6282285455631?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/628127030826?text=${encodeURIComponent(msg)}`, '_blank');
     location.href = '/';
 }
     } catch (e) {
