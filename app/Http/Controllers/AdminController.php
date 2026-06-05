@@ -168,7 +168,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'site_name' => 'required|string|max:255',
             'operational_hours' => 'required|string|max:255',
-            'whatsapp' => 'required|string|max:255',
+            'whatsapp' => 'required|string|max:20|regex:/^62[0-9]{8,15}$/',
             'email' => 'required|email|max:255',
             'facebook_url' => 'nullable|url|max:255',
             'instagram_url' => 'nullable|url|max:255',

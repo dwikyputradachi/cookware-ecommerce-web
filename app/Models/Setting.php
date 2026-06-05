@@ -16,13 +16,14 @@ class Setting extends Model
         'value',
     ];
 
-    public static function getValue(string $key, $default = null)
+   public static function getValue(string $key, $default = null)
     {
-        return self::where('key', $key)->value('value') ?? $default;
+        return self::where('settings_key', $key)
+            ->value('value') ?? $default;
     }
 
     public static function allAsArray(): array
     {
-        return self::pluck('value', 'key')->all();
+        return self::pluck('value', 'settings_key')->all();
     }
 }

@@ -54,7 +54,7 @@
                         <div class="flex items-end justify-between mt-auto">
                             <div>
                                 @if(isset($item['old_price']) && $item['old_price'] > $item['price'])
-                                    <p class="text-[10px] font-bold text-gray-400 line-through tracking-tighter mb-[-4px]">Rp {{ number_format($item['old_price']) }}</p>
+                                    <p class="text-[10px] font-bold text-gray-400 line-through tracking-tighter -mb-1">Rp {{ number_format($item['old_price']) }}</p>
                                 @endif
                                 <p class="text-sm font-black text-[#E1700F] italic">Rp {{ number_format($item['price']) }}</p>
                             </div>
@@ -68,7 +68,7 @@
                     </div>
                 </div>
                 @empty
-                <div id="empty-state" class="py-20 text-center border-2 border-dashed border-gray-100 rounded-[2rem]">
+                <div id="empty-state" class="py-20 text-center border-2 border-dashed border-gray-100 rounded-4xl">
                     <i data-lucide="shopping-basket" class="w-12 h-12 text-gray-200 mx-auto mb-4"></i>
                     <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Wah, keranjang masih kosong</p>
                     <a href="/" class="mt-4 inline-block text-[10px] font-black uppercase tracking-tighter text-[#E1700F] border-b-2 border-[#E1700F]">Mulai Cari Barang →</a>
@@ -79,7 +79,7 @@
 
         {{-- SIDEBAR CHECKOUT (Kanan) --}}
         <div class="lg:col-span-2 space-y-4 sticky top-24">
-            <div class="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-sm">
+            <div class="bg-white rounded-4xl border border-gray-100 p-6 shadow-sm">
                 <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                     <i data-lucide="truck" class="w-3 h-3 text-[#E1700F]"></i> Pengiriman & Bayar
                 </h2>
@@ -161,8 +161,8 @@
 </div>
 
 {{-- MODAL SYSTEM --}}
-<div id="modal-overlay" class="fixed inset-0 z-[200] flex items-center justify-center p-4 hidden" style="background:rgba(0,0,0,0.5);">
-    <div id="modal-box" class="bg-white rounded-[1.5rem] w-full max-w-sm overflow-hidden shadow-2xl transform transition-all">
+<div id="modal-overlay" class="fixed inset-0 z-200 items-center justify-center p-4 hidden" style="background:reba(0,0,0,0.5);">
+    <div id="modal-box" class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transform transition-all">
         <div class="px-6 pt-6 pb-0 flex flex-col items-center text-center">
             <div id="modal-icon-wrap" class="w-14 h-14 rounded-full flex items-center justify-center mb-4">
                 <svg id="modal-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
@@ -417,7 +417,7 @@ async function checkout() {
         `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
         `Terima kasih sudah berbelanja di Murazon! 🙏`;
 
-    window.open(`https://wa.me/628127030826?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/{{ \App\Models\Setting::getValue('whatsapp','628127030826') }}?text=${encodeURIComponent(msg)}`, '_blank');
     location.href = '/';
 }
     } catch (e) {

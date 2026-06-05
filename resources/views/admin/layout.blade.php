@@ -393,6 +393,10 @@
                 <div class="nav-icon"><i class="fas fa-cog"></i></div>
                 <span>Kelola Footer</span>
             </a>
+            <a href="{{ route('admin.security.index') }}" class="nav-item {{ request()->routeIs('admin.security.*') ? 'active' : '' }}">
+                <div class="nav-icon"><i class="fas fa-lock"></i></div>
+                <span>Keamanan Akun</span>
+            </a>
             <a href="{{ route('admin.payments.index') }}" class="nav-item {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
                 <div class="nav-icon"><i class="fas fa-credit-card"></i></div>
                 <span>Metode Pembayaran</span>

@@ -129,7 +129,9 @@
 </nav>
 
 <main class="min-h-screen">@yield('content')</main>
-
+@php
+    $adminWa = \App\Models\Setting::getValue('whatsapp', '628127030826');
+@endphp
 <footer class="bg-white border-t border-gray-100 pt-16 pb-8 mt-20">
     <div class="container mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
@@ -158,7 +160,7 @@
                 <div class="flex gap-3">
                     <a href="{{ $siteSettings['facebook_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-[#3b5998] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-facebook-f"></i></a>
                     <a href="{{ $siteSettings['instagram_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-instagram"></i></a>
-                    <a href="{{ $siteSettings['whatsapp_url'] ?? 'https://wa.me/628127030826' }}" class="footer-social-icon w-10 h-10 bg-[#25D366] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://wa.me/{{ $adminWa }}" class="footer-social-icon w-10 h-10 bg-[#25D366] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-whatsapp"></i></a>
                     <a href="{{ $siteSettings['tiktok_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-tiktok"></i></a>
                 </div>
                 {{-- QR Website --}}
@@ -180,7 +182,7 @@
 </footer>
 
 <div class="fixed bottom-6 right-6 z-110">
-    <a href="https://wa.me/628127030826" target="_blank" class="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#25D366] shadow-2xl transition-all hover:scale-110 text-white">
+    <a href="https://wa.me/{{ $adminWa }}" target="_blank" class="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#25D366] shadow-2xl transition-all hover:scale-110 text-white">
         <i class="fab fa-whatsapp text-3xl"></i>
     </a>
 </div>

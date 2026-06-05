@@ -10,6 +10,7 @@ use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentSettingController;
+use App\Http\Controllers\AdminSecurityController;
 
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -71,6 +72,9 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::put('/pages/{page}', [AdminController::class, 'updatePage'])->name('pages.update');
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings.index');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+    Route::get('/security', [AdminSecurityController::class, 'index'])->name('security.index');
+    Route::post('/security/send-otp', [AdminSecurityController::class, 'sendOtp'])->name('security.send-otp');
+    Route::post('/security/update-account', [AdminSecurityController::class, 'updateAccount'])->name('security.update-account');
 });
 // Route untuk halaman informasi dinamis
 Route::get('/about-us', [PageController::class, 'show'])->name('about.us')->defaults('slug', 'about-us');

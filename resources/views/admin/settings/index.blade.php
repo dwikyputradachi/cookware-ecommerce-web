@@ -37,8 +37,15 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp</label>
-                    <input type="text" name="whatsapp" value="{{ old('whatsapp', $settings['whatsapp'] ?? '') }}" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp Admin</label>
+                    <input 
+                        type="text" 
+                        name="whatsapp" 
+                        value="{{ old('whatsapp', $settings['whatsapp'] ?? '') }}" 
+                        placeholder="Contoh: 628127030826"
+                        class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 transition"
+                    >
+                    <p class="text-xs text-gray-400 mt-1">Gunakan format internasional tanpa +, contoh: 628xxxxxxxxxx</p>
                 </div>
 
                 <div>
