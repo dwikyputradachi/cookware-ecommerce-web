@@ -13,19 +13,29 @@ class CartController extends Controller
 {
     private function uploadToCloudinary($file, $folder = 'general')
     {
-        $cloudinaryUrl = env('CLOUDINARY_URL');
+        $cloudinaryUrl = config('services.cloudinary.url');
+
+        if (!$cloudinaryUrl) {
+            throw new \Exception('CLOUDINARY_URL belum terbaca di server.');
+        }
+
         $parsed = parse_url($cloudinaryUrl);
+
+        if (!isset($parsed['host'], $parsed['user'], $parsed['pass'])) {
+            throw new \Exception('Format CLOUDINARY_URL tidak valid.');
+        }
 
         $cloudinary = new Cloudinary([
             'cloud' => [
                 'cloud_name' => $parsed['host'],
                 'api_key'    => $parsed['user'],
                 'api_secret' => $parsed['pass'],
-            ]
+            ],
         ]);
 
         $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
-            'folder' => $folder
+            'folder' => $folder,
+            'resource_type' => 'image',
         ]);
 
         return $result['secure_url'];
@@ -214,8 +224,10 @@ class CartController extends Controller
 
         return response()->json([
             'success' => false,
-            'error' => 'Checkout gagal. Pastikan gambar bukti pembayaran tidak terlalu besar dan formatnya JPG/PNG/WEBP.',
+            'error' => config('app.debug')
+                ? $e->getMessage()
+                : 'Checkout gagal. Pastikan data sudah benar dan bukti pembayaran berformat JPG/PNG/WEBP maksimal 5MB.',
         ], 500);
     }
-}
+    }
 }
