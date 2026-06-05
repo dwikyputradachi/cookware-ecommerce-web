@@ -266,7 +266,7 @@
                     <div class="upload-zone" onclick="document.getElementById('image').click()">
                         <i class="fas fa-cloud-arrow-up"></i>
                         <p>Klik untuk upload gambar</p>
-                        <span>PNG, JPG, GIF — Maks 2MB</span>
+                        <span>PNG, JPG, GIF — Maks 5MB</span>
                         <input type="file" id="image" name="image" accept="image/*" class="hidden" onchange="previewImage(event)">
                     </div>
                     <div id="imagePreview" class="hidden" style="margin-top:12px;">
