@@ -278,10 +278,8 @@
                     <p class="info-label">Nama</p>
                     <p class="info-value">{{ $order->user->name ?? $order->customer_name ?? 'N/A' }}</p>
                 </div>
-                <div class="info-row">
-                    <p class="info-label">Email</p>
+                <p class="info-label">Kontak</p>
                     <p class="info-value">{{ $order->user->email ?? $order->customer_phone ?? 'N/A' }}</p>
-                </div>
                 <div class="info-row">
                     <p class="info-label">Nomor WhatsApp</p>
                     <p class="info-value">{{ $order->customer_phone ?? 'N/A' }}</p>
@@ -315,12 +313,14 @@
     {{-- ── Right Column ── --}}
     <div class="right-col">
 
-        {{-- Payment Proof --}}
+       {{-- Payment Proof --}}
         <div class="detail-card">
             <p class="card-title"><i class="fas fa-receipt"></i> Bukti Pembayaran</p>
+
             @if($order->payment_proof)
-                <img src="{{ img_url($order->payment_proof) }}"
-                     alt="Bukti Pembayaran" class="proof-img">
+                <a href="{{ $order->payment_proof }}" target="_blank">
+                    <img src="{{ $order->payment_proof }}" alt="Bukti Pembayaran" class="proof-img">
+                </a>
             @else
                 <div class="no-proof">
                     <i class="fas fa-exclamation-triangle"></i>

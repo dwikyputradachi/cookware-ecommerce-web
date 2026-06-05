@@ -256,6 +256,9 @@
                 <a href="{{ route('admin.orders.show', $order->id) }}" class="btn-view" style="width:100%;justify-content:center;">
                     <i class="fas fa-eye"></i> Lihat Detail
                 </a>
+                <div style="padding:16px;">
+                    {{ $orders->links() }}
+                </div>
             </div>
         @empty
             <div class="empty-state">

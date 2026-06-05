@@ -83,13 +83,20 @@ class AdminController extends Controller
             'price'          => 'required|numeric|min:0',
             'stock'          => 'required|integer|min:0',
             'category'       => 'nullable|string|max:255',
-            'image'          => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
             'video_url'      => 'nullable|url',
             'is_cod_available' => 'boolean'
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $this->uploadToCloudinary($request->file('image'));
+            try {
+                $validated['image'] = $this->uploadToCloudinary($request->file('image'));
+            } catch (\Throwable $e) {
+                report($e);
+                return back()
+                    ->withInput()
+                    ->with('error', 'Upload gambar gagal. Pastikan format JPG/PNG/WEBP dan ukuran maksimal 3MB.');
+            }
         }
 
         $validated['is_cod_available'] = $request->has('is_cod_available') ? 1 : 0;
@@ -119,7 +126,7 @@ class AdminController extends Controller
             'price'            => 'required|numeric|min:0',
             'stock'            => 'required|integer|min:0',
             'category'         => 'nullable|string|max:255',
-            'image'            => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
             'video_url'        => 'nullable|url',
             'is_cod_available' => 'boolean',
             'is_promo'         => 'boolean',
@@ -127,9 +134,16 @@ class AdminController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $this->uploadToCloudinary($request->file('image'));
+            try {
+                $validated['image'] = $this->uploadToCloudinary($request->file('image'));
+            } catch (\Throwable $e) {
+                report($e);
+                return back()
+                    ->withInput()
+                    ->with('error', 'Upload gambar gagal. Pastikan format JPG/PNG/WEBP dan ukuran maksimal 3MB.');
+            }
         }
-
+        
         $validated['is_cod_available'] = $request->has('is_cod_available') ? 1 : 0;
         $validated['is_promo']         = $request->has('is_promo') ? 1 : 0;
 
@@ -234,7 +248,7 @@ class AdminController extends Controller
 
     public function orders()
     {
-        $orders = Order::latest()->get();
+        $orders = Order::with('user')->latest()->paginate(10);
         return view('admin.orders.index', compact('orders'));
     }
 
@@ -274,4 +288,5 @@ class AdminController extends Controller
 
         return back()->with('success', 'Pesanan berhasil ditolak');
     }
+    
 }

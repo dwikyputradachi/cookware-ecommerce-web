@@ -135,10 +135,13 @@
                     <div id="proof-container">
                         <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Upload Bukti Transfer</label>
                         <div class="relative group">
-                            <input type="file" id="payment_proof" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                            <input type="file" id="payment_proof" accept=".jpg,.jpeg,.png,.webp" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                             <div class="border-2 border-dashed border-gray-100 rounded-xl p-4 text-center group-hover:bg-gray-50 transition">
                                 <i data-lucide="upload-cloud" class="w-5 h-5 text-gray-300 mx-auto mb-1"></i>
                                 <p id="file-name" class="text-[9px] text-gray-400 font-bold truncate uppercase">Pilih Gambar Bukti</p>
+                                <p class="text-[9px] text-gray-400 mt-1">
+                                    Format JPG, PNG, WEBP. Maksimal 5MB.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -152,7 +155,7 @@
                     <p class="text-[10px] text-gray-400 font-bold uppercase"><span id="total-qty">{{ collect($cart)->sum('quantity') }}</span> item</p>
                 </div>
 
-                <button onclick="checkout()" class="w-full bg-[#E1700F] hover:bg-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-orange-100 flex items-center justify-center gap-2">
+                <button id="checkout-btn" onclick="checkout()" class="w-full bg-[#E1700F] hover:bg-black text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-orange-100 flex items-center justify-center gap-2">
                     Konfirmasi & Pesan <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -161,7 +164,7 @@
 </div>
 
 {{-- MODAL SYSTEM --}}
-<div id="modal-overlay" class="fixed inset-0 z-200 items-center justify-center p-4 hidden" style="background:reba(0,0,0,0.5);">
+<div id="modal-overlay" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.5);">
     <div id="modal-box" class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl transform transition-all">
         <div class="px-6 pt-6 pb-0 flex flex-col items-center text-center">
             <div id="modal-icon-wrap" class="w-14 h-14 rounded-full flex items-center justify-center mb-4">
@@ -180,15 +183,18 @@
 <script>
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
 let selectedMethod = '';
+let isCheckingOut = false;
+
+const adminWaNumber = @json(\App\Models\Setting::getValue('whatsapp', '628127030826'));
 
 const paymentDetails = {
     @foreach($payments as $pm)
-    '{{ $pm->payment_key }}': {
-        title: @json($pm->label),
-        number: @json($pm->account_number ?? 'Bayar di tempat'),
-        name: @json($pm->account_name ?? 'Murazon Cookware'),
-        qr: @json($pm->qr_image ?? ''),
-    },
+        @json($pm->payment_key): {
+            title: @json($pm->label),
+            number: @json($pm->account_number),
+            name: @json($pm->account_name ?? 'Murazon Cookware'),
+            qr: @json($pm->qr_image ?? ''),
+        },
     @endforeach
 };
 
@@ -209,49 +215,65 @@ const ICONS = {
     card:    `<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>`,
 };
 
-function showModal({ type = 'warning', title, msg, fields = [], buttons }) {
+function showModal({ type = 'warning', title, msg, fields = [], buttons = [] }) {
     const isRed = type === 'danger';
     const color  = isRed ? '#dc2626' : '#E1700F';
     const bgIcon = isRed ? '#fee2e2'  : '#ffedd5';
+
     iconWrap.style.background = bgIcon;
     iconEl.setAttribute('stroke', color);
     iconEl.innerHTML = ICONS[type] ?? ICONS.warning;
-    titleEl.textContent = title;
-    msgEl.textContent   = msg;
+
+    titleEl.textContent = title || 'Informasi';
+    msgEl.textContent   = msg || '';
+
     if (fields.length) {
         fieldsEl.classList.remove('hidden');
         fieldsEl.innerHTML = fields.map(f =>
             `<li style="display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280;">
                 <span style="width:6px;height:6px;border-radius:50%;background:${f.ok ? '#16a34a' : color};flex-shrink:0;"></span>
                 ${f.label}${f.ok ? ' <span style="color:#16a34a;font-size:11px;">✓ terisi</span>' : ''}
-             </li>`
+            </li>`
         ).join('');
     } else {
         fieldsEl.classList.add('hidden');
+        fieldsEl.innerHTML = '';
     }
+
     btnsEl.innerHTML = '';
+
+    if (!buttons.length) {
+        buttons = [{ label: 'Tutup', primary: true }];
+    }
+
     buttons.forEach(b => {
         const btn = document.createElement('button');
         btn.textContent = b.label;
-        btn.style.cssText = `flex:1;padding:11px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;border:none;
+        btn.style.cssText = `flex:1;padding:11px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
             background:${b.primary ? color : 'transparent'};
             color:${b.primary ? '#fff' : '#6b7280'};
             border:${b.primary ? 'none' : '1px solid #e5e7eb'};`;
-        btn.onclick = () => { closeModal(); b.action?.(); };
+        btn.onclick = () => {
+            closeModal();
+            if (typeof b.action === 'function') b.action();
+        };
         btnsEl.appendChild(btn);
     });
+
     overlay.classList.remove('hidden');
 }
 
-function closeModal() { overlay.classList.add('hidden'); }
+function closeModal() {
+    overlay.classList.add('hidden');
+}
 
 // PAYMENT SELECT
-function selectPayment(method, el) {
+window.selectPayment = function(method, el) {
     selectedMethod = method;
 
-    document.querySelectorAll('.payment-opt').forEach(b =>
-        b.classList.remove('selected', 'border-[#E1700F]', 'bg-orange-50/50')
-    );
+    document.querySelectorAll('.payment-opt').forEach(b => {
+        b.classList.remove('selected', 'border-[#E1700F]', 'bg-orange-50/50');
+    });
 
     el.classList.add('selected', 'border-[#E1700F]', 'bg-orange-50/50');
 
@@ -263,167 +285,382 @@ function selectPayment(method, el) {
             type: 'danger',
             title: 'Metode tidak ditemukan',
             msg: 'Data metode pembayaran belum terbaca.',
-            buttons: [{ label: 'Tutup', primary: true }]
         });
         return;
     }
 
     document.getElementById('payment-title').textContent = detail.title;
-    document.getElementById('acc-number').textContent = detail.number;
+
+    const accNumberEl = document.getElementById('acc-number');
+    const copyBtn = accNumberEl.parentElement.querySelector('button');
 
     let nameEl = document.getElementById('account-name-display');
     if (!nameEl) {
         nameEl = document.createElement('p');
         nameEl.id = 'account-name-display';
         nameEl.className = 'text-[8px] opacity-50 uppercase mt-1';
-        document.getElementById('acc-number').parentElement.parentElement.appendChild(nameEl);
+        accNumberEl.parentElement.parentElement.appendChild(nameEl);
     }
-    nameEl.textContent = 'A/N ' + detail.name;
 
     let qrEl = document.getElementById('qr-display');
     if (!qrEl) {
         qrEl = document.createElement('div');
         qrEl.id = 'qr-display';
-        document.getElementById('acc-number').parentElement.parentElement.appendChild(qrEl);
+        accNumberEl.parentElement.parentElement.appendChild(qrEl);
     }
 
-    qrEl.innerHTML = detail.qr
-    ? `
-        <div class="mt-3">
-            <p class="text-[10px] font-bold uppercase text-white/70 mb-2 text-center">Scan QR</p>
-            <div class="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm flex justify-center">
-                <img src="${detail.qr}" class="w-40 h-40 object-contain">
+    if (method === 'cod') {
+        accNumberEl.textContent = 'Bayar di tempat';
+        nameEl.textContent = '';
+        qrEl.innerHTML = '';
+        copyBtn.classList.add('hidden');
+    } else if (detail.qr) {
+        accNumberEl.textContent = 'Scan QRIS di bawah';
+        nameEl.textContent = '';
+        copyBtn.classList.add('hidden');
+
+        qrEl.innerHTML = `
+            <div class="mt-3">
+                <p class="text-[10px] font-bold uppercase text-white/70 mb-2 text-center">Scan QRIS</p>
+                <div class="bg-white rounded-2xl p-3 border border-gray-200 shadow-sm flex justify-center">
+                    <img src="${detail.qr}" class="w-40 h-40 object-contain">
+                </div>
             </div>
-        </div>
-      `
-    : '';
+        `;
+    } else {
+        accNumberEl.textContent = detail.number || '-';
+        nameEl.textContent = detail.name ? 'A/N ' + detail.name : '';
+        qrEl.innerHTML = '';
+        copyBtn.classList.remove('hidden');
+    }
+
     info.classList.remove('hidden');
     document.getElementById('proof-container').classList.toggle('hidden', method === 'cod');
 
     window.lucide?.createIcons?.();
+};
+
+const proofInput = document.getElementById('payment_proof');
+if (proofInput) {
+    proofInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        const fileNameEl = document.getElementById('file-name');
+
+        if (!file) {
+            fileNameEl.textContent = 'Pilih Gambar Bukti';
+            return;
+        }
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        const maxSize = 5 * 1024 * 1024;
+
+        if (!allowedTypes.includes(file.type)) {
+            e.target.value = '';
+            fileNameEl.textContent = 'Pilih Gambar Bukti';
+            showModal({
+                type: 'danger',
+                title: 'Format tidak didukung',
+                msg: 'Gunakan gambar JPG, PNG, atau WEBP.',
+            });
+            return;
+        }
+
+        if (file.size > maxSize) {
+            e.target.value = '';
+            fileNameEl.textContent = 'Pilih Gambar Bukti';
+            showModal({
+                type: 'danger',
+                title: 'File terlalu besar',
+                msg: 'Ukuran bukti pembayaran maksimal 5MB.',
+            });
+            return;
+        }
+
+        fileNameEl.textContent = file.name;
+    });
 }
 
-document.getElementById('payment_proof').addEventListener('change', e => {
-    document.getElementById('file-name').textContent = e.target.files[0]?.name || 'Pilih Gambar Bukti';
-});
+window.copyToClipboard = function() {
+    const text = document.getElementById('acc-number').textContent;
 
-function copyToClipboard() {
-    navigator.clipboard.writeText(document.getElementById('acc-number').textContent);
-    alert('Nomor disalin!');
-}
+    if (!text || text === '-' || text.includes('Scan') || text.includes('Bayar')) {
+        showModal({
+            type: 'warning',
+            title: 'Tidak ada nomor',
+            msg: 'Metode ini tidak memiliki nomor rekening untuk disalin.',
+        });
+        return;
+    }
+
+    navigator.clipboard.writeText(text);
+    showModal({
+        type: 'card',
+        title: 'Berhasil disalin',
+        msg: 'Nomor pembayaran berhasil disalin.',
+    });
+};
 
 // CART ACTIONS
-async function updateCart(id, action) {
-    const currentQty = parseInt(document.getElementById(`qty-${id}`).textContent);
+window.updateCart = async function(id, action) {
+    const qtyEl = document.getElementById(`qty-${id}`);
+    const currentQty = parseInt(qtyEl.textContent);
+
     if (action === 'minus' && currentQty <= 1) {
         showModal({
-            type: 'trash', title: 'Hapus produk ini?', msg: 'Jumlah sudah minimum. Hapus produk?',
+            type: 'trash',
+            title: 'Hapus produk ini?',
+            msg: 'Jumlah sudah minimum. Hapus produk dari keranjang?',
             buttons: [
                 { label: 'Batal', primary: false },
-                { label: 'Hapus', primary: true, action: async () => {
-                    const res = await fetch(`/cart/remove/${id}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf }});
-                    const data = await res.json();
-                    if (data.success) { document.getElementById(`item-${id}`)?.remove(); refreshTotal(data.cart); }
-                }},
+                {
+                    label: 'Hapus',
+                    primary: true,
+                    action: async () => {
+                        const res = await fetch(`/cart/remove/${id}`, {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': csrf }
+                        });
+                        const data = await res.json();
+
+                        if (data.success) {
+                            document.getElementById(`item-${id}`)?.remove();
+                            refreshTotal(data.cart);
+                        }
+                    }
+                },
             ],
         });
         return;
     }
-    const res = await fetch(`/cart/update/${id}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf }, body: JSON.stringify({ action })});
-    const data = await res.json();
-    if (data.success) {
-        if (!data.cart[id]) { document.getElementById(`item-${id}`)?.remove(); } 
-        else { document.getElementById(`qty-${id}`).textContent = data.cart[id].quantity; }
-        refreshTotal(data.cart);
-    }
-}
 
-async function removeCart(id) {
+    const res = await fetch(`/cart/update/${id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrf
+        },
+        body: JSON.stringify({ action })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        if (!data.cart[id]) {
+            document.getElementById(`item-${id}`)?.remove();
+        } else {
+            qtyEl.textContent = data.cart[id].quantity;
+        }
+
+        refreshTotal(data.cart);
+    } else {
+        showModal({
+            type: 'warning',
+            title: 'Stok tidak cukup',
+            msg: data.error || 'Produk tidak bisa ditambahkan lagi.',
+        });
+    }
+};
+
+window.removeCart = function(id) {
     showModal({
-        type: 'trash', title: 'Hapus produk?', msg: 'Produk akan dihapus dari keranjang.',
+        type: 'trash',
+        title: 'Hapus produk?',
+        msg: 'Produk akan dihapus dari keranjang.',
         buttons: [
             { label: 'Batal', primary: false },
-            { label: 'Hapus', primary: true, action: async () => {
-                const res = await fetch(`/cart/remove/${id}`, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf }});
-                const data = await res.json();
-                if (data.success) { document.getElementById(`item-${id}`)?.remove(); refreshTotal(data.cart); }
-            }},
+            {
+                label: 'Hapus',
+                primary: true,
+                action: async () => {
+                    const res = await fetch(`/cart/remove/${id}`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrf }
+                    });
+
+                    const data = await res.json();
+
+                    if (data.success) {
+                        document.getElementById(`item-${id}`)?.remove();
+                        refreshTotal(data.cart);
+                    }
+                }
+            },
         ],
     });
-}
+};
 
 function refreshTotal(cart) {
     const items = Object.values(cart);
-    const qty   = items.reduce((s, i) => s + (i.quantity ?? 0), 0);
+    const qty = items.reduce((s, i) => s + (i.quantity ?? 0), 0);
     const total = items.reduce((s, i) => s + (i.price * (i.quantity ?? 0)), 0);
+
     document.getElementById('total-qty').textContent = qty;
     document.getElementById('total-qty-top').textContent = qty;
     document.getElementById('total-price').textContent = 'Rp ' + total.toLocaleString('id-ID');
-    if (qty === 0) location.reload();
+
+    if (qty === 0) {
+        location.reload();
+    }
 }
 
 // CHECKOUT
-async function checkout() {
+window.checkout = async function() {
+    if (isCheckingOut) return;
+
     const name    = document.getElementById('cust_name').value.trim();
     const phone   = document.getElementById('cust_phone').value.trim();
     const address = document.getElementById('cust_address').value.trim();
-    const proofFile = document.getElementById('payment_proof').files[0];
+    const proofInput = document.getElementById('payment_proof');
+    const proofFile = proofInput.files[0];
+    const checkoutBtn = document.getElementById('checkout-btn');
 
     if (!name || !phone || !address) {
         showModal({
-            type: 'warning', title: 'Data belum lengkap', msg: 'Lengkapi data pengiriman.',
-            fields: [{ label: 'Nama', ok: !!name }, { label: 'WA', ok: !!phone }, { label: 'Alamat', ok: !!address }],
+            type: 'warning',
+            title: 'Data belum lengkap',
+            msg: 'Lengkapi data pengiriman.',
+            fields: [
+                { label: 'Nama', ok: !!name },
+                { label: 'WA', ok: !!phone },
+                { label: 'Alamat', ok: !!address }
+            ],
             buttons: [{ label: 'Isi sekarang', primary: true }],
         });
         return;
     }
+
     if (!selectedMethod) {
-        showModal({ type: 'card', title: 'Pilih pembayaran', msg: 'Pilih metode bayar.', buttons: [{ label: 'Oke', primary: true }]});
-        return;
-    }
-    if (selectedMethod !== 'cod' && !proofFile) {
-        showModal({ type: 'upload', title: 'Upload bukti', msg: 'Wajib upload bukti transfer.', buttons: [{ label: 'Upload', primary: true }]});
+        showModal({
+            type: 'card',
+            title: 'Pilih pembayaran',
+            msg: 'Pilih metode pembayaran terlebih dahulu.',
+        });
         return;
     }
 
-    const totalPriceRaw = document.getElementById('total-price').textContent.replace(/[^0-9]/g, '');
+    if (selectedMethod !== 'cod' && !proofFile) {
+        showModal({
+            type: 'upload',
+            title: 'Upload bukti',
+            msg: 'Wajib upload bukti transfer untuk metode pembayaran ini.',
+        });
+        return;
+    }
+
+    if (proofFile) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        const maxSize = 5 * 1024 * 1024;
+
+        if (!allowedTypes.includes(proofFile.type)) {
+            showModal({
+                type: 'danger',
+                title: 'Format tidak didukung',
+                msg: 'Gunakan gambar JPG, PNG, atau WEBP.',
+            });
+            return;
+        }
+
+        if (proofFile.size > maxSize) {
+            showModal({
+                type: 'danger',
+                title: 'File terlalu besar',
+                msg: 'Ukuran bukti pembayaran maksimal 5MB.',
+            });
+            return;
+        }
+    }
+
     const formData = new FormData();
     formData.append('name', name);
     formData.append('phone', phone);
     formData.append('address', address);
     formData.append('payment_method', selectedMethod);
-    formData.append('total_price', totalPriceRaw);
     if (proofFile) formData.append('payment_proof', proofFile);
 
     try {
-        const response = await fetch('/checkout', { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf }, body: formData });
-        const result = await response.json();
-        if (result.success) {
-    const isPaid = result.data_server.payment_method !== 'cod';
-    const msg = 
-        `PESANAN BARU - MURAZON COOKWARE\n` +
-        `Order ID: #${result.order_id}\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `DETAIL PELANGGAN\n` +
-        `Nama    : ${result.data_server.name}\n` +
-        `No. WA  : ${result.data_server.phone}\n` +
-        `Alamat  : ${result.data_server.address}\n\n` +
-        `🛒 DETAIL PRODUK\n` +
-        `${result.items_string}\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `💰 TOTAL  : Rp ${result.data_server.total_price}\n` +
-        `💳 BAYAR  : ${result.data_server.payment_method.toUpperCase()}\n` +
-        `📋 STATUS : ${isPaid ? 'Sudah Bayar (Menunggu Verifikasi)' : 'COD - Bayar di Tempat'}\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `Terima kasih sudah berbelanja di Murazon! 🙏`;
+        isCheckingOut = true;
+        checkoutBtn.disabled = true;
+        checkoutBtn.innerHTML = 'Memproses Pesanan...';
 
-    window.open(`https://wa.me/{{ \App\Models\Setting::getValue('whatsapp','628127030826') }}?text=${encodeURIComponent(msg)}`, '_blank');
-    location.href = '/';
-}
+        const freshCsrf = document.querySelector('meta[name="csrf-token"]').content;
+
+        const response = await fetch('/checkout', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': freshCsrf,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            body: formData
+        });
+
+        if (response.status === 419) {
+            showModal({
+                type: 'warning',
+                title: 'Sesi halaman berakhir',
+                msg: 'Halaman checkout sudah tidak valid. Silakan refresh halaman lalu coba lagi.',
+                buttons: [
+                    {
+                        label: 'Refresh',
+                        primary: true,
+                        action: () => location.reload()
+                    }
+                ]
+            });
+            return;
+        }
+        let result;
+        try {
+            result = await response.json();
+        } catch (e) {
+            result = {
+                success: false,
+                error: 'Server mengembalikan response tidak valid.'
+            };
+        }
+
+        if (!response.ok || !result.success) {
+            showModal({
+                type: 'danger',
+                title: 'Checkout gagal',
+                msg: result.error || 'Terjadi kesalahan saat checkout.',
+            });
+            return;
+        }
+
+        const isPaid = result.data_server.payment_method !== 'cod';
+
+        const msg =
+            `PESANAN BARU - MURAZON COOKWARE\n` +
+            `Order ID: #${result.order_id}\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `DETAIL PELANGGAN\n` +
+            `Nama    : ${result.data_server.name}\n` +
+            `No. WA  : ${result.data_server.phone}\n` +
+            `Alamat  : ${result.data_server.address}\n\n` +
+            `DETAIL PRODUK\n` +
+            `${result.items_string}\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `TOTAL  : Rp ${result.data_server.total_price}\n` +
+            `BAYAR  : ${result.data_server.payment_method.toUpperCase()}\n` +
+            `STATUS : ${isPaid ? 'Sudah Bayar (Menunggu Verifikasi)' : 'COD - Bayar di Tempat'}\n` +
+            `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+            `Terima kasih sudah berbelanja di Murazon!`;
+
+        window.location.href = `https://wa.me/${adminWaNumber}?text=${encodeURIComponent(msg)}`;
+
     } catch (e) {
-        showModal({ type: 'danger', title: 'Gagal', msg: 'Terjadi kesalahan sistem.', buttons: [{ label: 'Tutup', primary: true }]});
+        showModal({
+            type: 'danger',
+            title: 'Gagal',
+            msg: 'Terjadi kesalahan sistem saat checkout.',
+        });
+    } finally {
+        isCheckingOut = false;
+        checkoutBtn.disabled = false;
+        checkoutBtn.innerHTML = 'Konfirmasi & Pesan <i data-lucide="arrow-right" class="w-4 h-4"></i>';
+        window.lucide?.createIcons?.();
     }
-}
-
+};
 </script>
 @endpush

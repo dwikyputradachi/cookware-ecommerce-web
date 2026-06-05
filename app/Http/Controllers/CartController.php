@@ -122,7 +122,19 @@ class CartController extends Controller
     }
 
     public function checkout(Request $request)
-    {
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'phone' => 'required|string|max:30',
+        'address' => 'required|string|max:1000',
+        'payment_method' => 'required|string',
+        'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+    ], [
+        'payment_proof.mimes' => 'Format bukti pembayaran harus JPG, JPEG, PNG, atau WEBP.',
+        'payment_proof.max' => 'Ukuran bukti pembayaran maksimal 5MB.',
+    ]);
+
+    try {
         return DB::transaction(function () use ($request) {
             $cart = session()->get('cart', []);
 
@@ -130,8 +142,8 @@ class CartController extends Controller
                 return response()->json(['success' => false, 'error' => 'Keranjang kosong.'], 400);
             }
 
-            // Upload bukti bayar ke Cloudinary
             $proofPath = null;
+
             if ($request->hasFile('payment_proof')) {
                 $proofPath = $this->uploadToCloudinary(
                     $request->file('payment_proof'),
@@ -139,47 +151,44 @@ class CartController extends Controller
                 );
             }
 
-            // Hitung total dari database
             $totalPriceServer = 0;
-            $itemsString      = '';
+            $itemsString = '';
 
             foreach ($cart as $id => $item) {
                 $product = Product::find($id);
                 if (!$product) continue;
 
                 $currentPrice = ($product->is_promo && $product->discount_price > 0)
-                                ? $product->discount_price
-                                : $product->price;
+                    ? $product->discount_price
+                    : $product->price;
 
                 $totalPriceServer += ($currentPrice * $item['quantity']);
                 $itemsString .= "- {$product->name} ({$item['quantity']}x) @ Rp " . number_format($currentPrice) . "\n";
             }
 
-            // Simpan order
             $order = Order::create([
-                'customer_name'    => $request->name,
-                'customer_phone'   => $request->phone,
+                'customer_name' => $request->name,
+                'customer_phone' => $request->phone,
                 'customer_address' => $request->address,
-                'payment_method'   => $request->payment_method,
-                'total_price'      => $totalPriceServer,
-                'status'           => ($request->payment_method == 'cod') ? 'pending' : 'waiting_verification',
-                'payment_proof'    => $proofPath,
+                'payment_method' => $request->payment_method,
+                'total_price' => $totalPriceServer,
+                'status' => ($request->payment_method == 'cod') ? 'pending' : 'waiting_verification',
+                'payment_proof' => $proofPath,
             ]);
 
-            // Simpan item & kurangi stok
             foreach ($cart as $id => $item) {
                 $product = Product::lockForUpdate()->find($id);
                 if (!$product) continue;
 
                 $finalPrice = ($product->is_promo && $product->discount_price > 0)
-                            ? $product->discount_price
-                            : $product->price;
+                    ? $product->discount_price
+                    : $product->price;
 
                 OrderItem::create([
-                    'order_id'   => $order->id,
+                    'order_id' => $order->id,
                     'product_id' => $id,
-                    'quantity'   => $item['quantity'],
-                    'price'      => $finalPrice,
+                    'quantity' => $item['quantity'],
+                    'price' => $finalPrice,
                 ]);
 
                 $product->decrement('stock', $item['quantity']);
@@ -188,17 +197,25 @@ class CartController extends Controller
             session()->forget('cart');
 
             return response()->json([
-                'success'      => true,
-                'order_id'     => $order->id,
+                'success' => true,
+                'order_id' => $order->id,
                 'items_string' => $itemsString,
-                'data_server'  => [
-                    'name'           => $order->customer_name,
-                    'phone'          => $order->customer_phone,
-                    'address'        => $order->customer_address,
-                    'total_price'    => number_format($order->total_price, 0, ',', '.'),
+                'data_server' => [
+                    'name' => $order->customer_name,
+                    'phone' => $order->customer_phone,
+                    'address' => $order->customer_address,
+                    'total_price' => number_format($order->total_price, 0, ',', '.'),
                     'payment_method' => $order->payment_method,
                 ],
             ]);
         });
+    } catch (\Throwable $e) {
+        report($e);
+
+        return response()->json([
+            'success' => false,
+            'error' => 'Checkout gagal. Pastikan gambar bukti pembayaran tidak terlalu besar dan formatnya JPG/PNG/WEBP.',
+        ], 500);
     }
+}
 }
