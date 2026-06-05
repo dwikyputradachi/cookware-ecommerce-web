@@ -2,21 +2,16 @@
 
 @layer base {
   :root {
-    /* Warna Murazon: Cokelat & Oranye */
-    --color-primary: #6B3005;    /* Cokelat Tua dari Logo */
-    --color-secondary: #E1700F;  /* Oranye Murazon */
-    --color-santo-blue: #E1700F; /* Kita timpa aja biar yg tadinya biru jadi oranye */
+    --color-primary: #6B3005;   
+    --color-secondary: #E1700F; 
+    --color-murazon-blue: #E1700F; 
     
-    /* Tambahan buat bayangan halus ala Murazon */
     --color-accent-soft: #fff7ed; 
   }
-  
   body {
     font-family: "Plus Jakarta Sans", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-
-  /* Menghilangkan scrollbar tapi fungsi scroll tetap aktif */
   .no-scrollbar::-webkit-scrollbar {
       display: none;
   }
