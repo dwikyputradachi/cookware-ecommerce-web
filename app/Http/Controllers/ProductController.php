@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Banner;
-
+use Illuminate\Support\Facades\Cache;
 class ProductController extends Controller
 {
     public function index(Request $request)
@@ -49,10 +49,11 @@ class ProductController extends Controller
 
         $products = $query->get();
 
-        $banners = Banner::where('is_active', true)
-        ->orderBy('id', 'asc')
-        ->limit(5)
-        ->get();
+        $banners = Cache::remember('active_banners', now()->addMinutes(30), function () {
+            return Banner::active()
+                ->limit(5)
+                ->get();
+        });
 
         $categories = $this->getCategories();
 
@@ -84,10 +85,11 @@ class ProductController extends Controller
             ->latest()
             ->get();
 
-        $banners = Banner::where('is_active', true)
-        ->orderBy('id', 'asc')
-        ->limit(5)
-        ->get();
+        $banners = Cache::remember('active_banners', now()->addMinutes(30), function () {
+            return Banner::active()
+                ->limit(5)
+                ->get();
+        });
 
         $categories = $this->getCategories();
 

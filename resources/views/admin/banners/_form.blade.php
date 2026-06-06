@@ -52,7 +52,7 @@
         <p id="file-info" class="text-xs text-gray-400 mt-1.5 hidden"></p>
 
         <input type="file" id="image-input" name="image"
-               accept="image/jpeg,image/png,image/jpg,image/webp"
+               accept=".jpg,.jpeg,.png,.webp"
                class="hidden"
                {{ !$banner ? 'required' : '' }}
                onchange="previewImage(this)">
@@ -83,9 +83,11 @@
         <div class="flex-1">
             <label class="block text-sm font-semibold text-gray-700 mb-1.5">Sort Order</label>
             <input type="number" name="sort_order" min="0"
-                   value="{{ old('sort_order', $banner?->sort_order ?? 0) }}"
-                   class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400 transition">
-            <p class="text-xs text-gray-400 mt-1">Angka kecil = tampil duluan</p>
+                value="{{ old('sort_order', $banner?->sort_order ?? $nextSortOrder ?? 0) }}"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400 transition">
+            <p class="text-xs text-gray-400 mt-1">
+                Bisa dikosongkan/default. Angka kecil tampil lebih dulu.
+            </p>
         </div>
 
         {{-- Status --}}
