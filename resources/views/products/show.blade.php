@@ -217,8 +217,7 @@
 
                 {{-- List Review --}}
                 <div class="space-y-4">
-                    @forelse($product->reviews()->latest()->get() as $review)
-                    <div class="bg-white rounded-2xl border border-gray-100 p-5">
+                    @forelse($product->reviews as $review)                    <div class="bg-white rounded-2xl border border-gray-100 p-5">
                         <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center gap-2">
                                 <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-xs font-black text-[#E1700F]">

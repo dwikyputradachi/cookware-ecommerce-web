@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Product;
 use App\Models\Banner;
+use App\Models\Product;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+
 class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::query();
+        $query = Product::query()
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating');
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
@@ -32,7 +35,12 @@ class ProductController extends Controller
         }
 
         if ($request->filled('min_rating')) {
-            $query->where('rating', '>=', $request->min_rating);
+            $minRating = (float) $request->min_rating;
+
+            if ($minRating > 0) {
+                $query->whereHas('reviews')
+                    ->where('rating', '>=', $minRating);
+            }
         }
 
         if ($request->filled('in_stock')) {
@@ -42,7 +50,9 @@ class ProductController extends Controller
         match ($request->sort ?? 'latest') {
             'price_asc'  => $query->orderBy('price', 'asc'),
             'price_desc' => $query->orderBy('price', 'desc'),
-            'rating'     => $query->orderBy('rating', 'desc'),
+            'rating'     => $query
+                ->orderByRaw('reviews_avg_rating IS NULL')
+                ->orderByDesc('reviews_avg_rating'),
             'popular'    => $query->orderBy('total_sold', 'desc'),
             default      => $query->latest(),
         };
@@ -59,7 +69,9 @@ class ProductController extends Controller
 
         $maxPrice = Product::max('price');
 
-        $hotItems = Product::where('total_sold', '>', 0)
+        $hotItems = Product::withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->where('total_sold', '>', 0)
             ->orderBy('total_sold', 'desc')
             ->take(5)
             ->get();
@@ -79,7 +91,9 @@ class ProductController extends Controller
 
     public function promo()
     {
-        $products = Product::where('is_promo', true)
+        $products = Product::withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->where('is_promo', true)
             ->whereNotNull('discount_price')
             ->where('discount_price', '>', 0)
             ->latest()
@@ -102,7 +116,15 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with([
+                'reviews' => function ($query) {
+                    $query->latest();
+                }
+            ])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->findOrFail($id);
+
         $order_id = request('order_id');
 
         return view('products.show', compact('product', 'order_id'));
