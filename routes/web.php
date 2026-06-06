@@ -47,6 +47,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
         Route::get('/{order}', [AdminController::class, 'showOrder'])->name('show');
         Route::post('/{order}/approve', [AdminController::class, 'approveOrder'])->name('approve');
         Route::post('/{order}/reject', [AdminController::class, 'rejectOrder'])->name('reject');
+        Route::delete('/{order}', [AdminController::class, 'destroyOrder'])->name('destroy');
     });
 
     Route::prefix('products')->name('products.')->group(function () {

@@ -2,15 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Product;
 use App\Models\Order;
 use App\Models\Page;
+use App\Models\Product;
 use App\Models\Setting;
 use Cloudinary\Cloudinary;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
+    private function normalizeCurrency($value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $digits = preg_replace('/[^0-9]/', '', (string) $value);
+
+        return $digits === '' ? null : (int) $digits;
+    }
+
     private function uploadToCloudinary($file)
     {
         $cloudinaryUrl = config('services.cloudinary.url');
@@ -36,6 +49,14 @@ class AdminController extends Controller
         $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
             'folder' => 'products',
             'resource_type' => 'image',
+            'transformation' => [
+                [
+                    'width' => 1200,
+                    'height' => 1200,
+                    'crop' => 'limit',
+                    'quality' => 'auto:good',
+                ],
+            ],
         ]);
 
         return $result['secure_url'];
@@ -47,8 +68,14 @@ class AdminController extends Controller
         $totalStock = Product::sum('stock');
         $codAvailableProducts = Product::where('is_cod_available', true)->count();
         $lowStockProducts = Product::where('stock', '<', 5)->count();
+
         $totalRevenue = Order::where('status', 'completed')->sum('total_price');
         $totalOrders = Order::where('status', 'completed')->count();
+
+        $pendingOrders = Order::whereIn('status', [
+            'pending',
+            'waiting_verification',
+        ])->count();
 
         return view('admin.dashboard', compact(
             'totalProducts',
@@ -56,13 +83,15 @@ class AdminController extends Controller
             'codAvailableProducts',
             'lowStockProducts',
             'totalOrders',
-            'totalRevenue'
+            'totalRevenue',
+            'pendingOrders'
         ));
     }
 
     public function indexProducts()
     {
-        $products = Product::paginate(10);
+        $products = Product::latest()->paginate(10);
+
         return view('admin.products.index', compact('products'));
     }
 
@@ -73,6 +102,13 @@ class AdminController extends Controller
 
     public function storeProduct(Request $request)
     {
+        $request->merge([
+            'price' => $this->normalizeCurrency($request->price),
+            'discount_price' => $request->has('is_promo')
+                ? $this->normalizeCurrency($request->discount_price)
+                : null,
+        ]);
+
         $validated = $request->validate([
             'name'             => 'required|string|max:255',
             'description'      => 'nullable|string',
@@ -83,7 +119,9 @@ class AdminController extends Controller
             'video_url'        => 'nullable|url',
             'is_cod_available' => 'boolean',
             'is_promo'         => 'boolean',
-            'discount_price'   => 'nullable|numeric|min:0|lt:price',
+            'discount_price' => $request->has('is_promo')
+                ? 'required|numeric|min:0|lt:price'
+                : 'nullable',
         ], [
             'image.mimes' => 'Format gambar produk harus JPG, JPEG, PNG, atau WEBP.',
             'image.max'   => 'Ukuran gambar produk maksimal 5MB.',
@@ -110,6 +148,8 @@ class AdminController extends Controller
 
         Product::create($validated);
 
+        Cache::forget('nav_categories');
+
         return redirect()
             ->route('admin.products.index')
             ->with('success', 'Produk berhasil ditambahkan!');
@@ -122,6 +162,13 @@ class AdminController extends Controller
 
     public function updateProduct(Request $request, Product $product)
     {
+        $request->merge([
+            'price' => $this->normalizeCurrency($request->price),
+            'discount_price' => $request->has('is_promo')
+                ? $this->normalizeCurrency($request->discount_price)
+                : null,
+        ]);
+
         $validated = $request->validate([
             'name'             => 'required|string|max:255',
             'description'      => 'nullable|string',
@@ -159,6 +206,8 @@ class AdminController extends Controller
 
         $product->update($validated);
 
+        Cache::forget('nav_categories');
+
         return redirect()
             ->route('admin.products.index')
             ->with('success', 'Produk berhasil diperbarui!');
@@ -168,6 +217,8 @@ class AdminController extends Controller
     {
         $product->delete();
 
+        Cache::forget('nav_categories');
+
         return redirect()
             ->route('admin.products.index')
             ->with('success', 'Produk berhasil dihapus!');
@@ -176,6 +227,7 @@ class AdminController extends Controller
     public function settings()
     {
         $settings = Setting::pluck('value', 'settings_key')->all();
+
         return view('admin.settings.index', compact('settings'));
     }
 
@@ -198,6 +250,8 @@ class AdminController extends Controller
                 ['value' => $value]
             );
         }
+
+        Cache::forget('site_settings');
 
         return redirect()
             ->route('admin.settings.index')
@@ -242,47 +296,120 @@ class AdminController extends Controller
             ->with('success', 'Halaman berhasil diperbarui!');
     }
 
-    public function orders()
+    public function orders(Request $request)
     {
-        $orders = Order::with('user')->latest()->paginate(10);
+        $query = Order::with('user')->latest();
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                if (ctype_digit($search)) {
+                    $q->orWhere('id', $search);
+                }
+
+                $q->orWhere('customer_name', 'like', '%' . $search . '%')
+                  ->orWhere('customer_phone', 'like', '%' . $search . '%');
+            });
+        }
+
+        $orders = $query->paginate(10)->withQueryString();
+
         return view('admin.orders.index', compact('orders'));
     }
 
     public function showOrder($id)
     {
         $order = Order::with(['user', 'items.product'])->findOrFail($id);
+
         return view('admin.orders.show', compact('order'));
     }
 
     public function approveOrder($id)
     {
-        $order = Order::with('items.product')->findOrFail($id);
+        try {
+            DB::transaction(function () use ($id) {
+                $order = Order::with('items.product')
+                    ->lockForUpdate()
+                    ->findOrFail($id);
 
-        if ($order->status !== 'waiting_verification') {
-            return back()->with('error', 'Order sudah diproses');
+                if (!in_array($order->status, ['waiting_verification', 'pending'])) {
+                    throw new \Exception('Order sudah diproses.');
+                }
+
+                foreach ($order->items as $item) {
+                    if ($item->product) {
+                        $item->product->increment('total_sold', $item->quantity);
+                    }
+                }
+
+                $order->update([
+                    'status' => 'completed',
+                ]);
+            });
+
+            return back()->with('success', 'Pesanan berhasil disetujui.');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', $e->getMessage());
         }
-
-        foreach ($order->items as $item) {
-            if ($item->product) {
-                $item->product->increment('total_sold', $item->quantity);
-            }
-        }
-
-        $order->update(['status' => 'completed']);
-
-        return back()->with('success', 'Pesanan berhasil disetujui');
     }
 
     public function rejectOrder($id)
     {
-        $order = Order::findOrFail($id);
+        try {
+            DB::transaction(function () use ($id) {
+                $order = Order::with('items.product')
+                    ->lockForUpdate()
+                    ->findOrFail($id);
 
-        if ($order->status !== 'waiting_verification') {
-            return back()->with('error', 'Order sudah diproses');
+                if (!in_array($order->status, ['waiting_verification', 'pending'])) {
+                    throw new \Exception('Order sudah diproses.');
+                }
+
+                foreach ($order->items as $item) {
+                    if ($item->product) {
+                        $item->product->increment('stock', $item->quantity);
+                    }
+                }
+
+                $order->update([
+                    'status' => 'cancelled',
+                ]);
+            });
+
+            return back()->with('success', 'Pesanan berhasil ditolak dan stok dikembalikan.');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function destroyOrder(Order $order)
+    {
+        if (!in_array($order->status, ['completed', 'cancelled'])) {
+            return back()->with('error', 'Pesanan yang masih pending/menunggu verifikasi tidak boleh dihapus.');
         }
 
-        $order->update(['status' => 'cancelled']);
+        try {
+            DB::transaction(function () use ($order) {
+                $order->items()->delete();
+                $order->delete();
+            });
 
-        return back()->with('success', 'Pesanan berhasil ditolak');
+            return redirect()
+                ->route('admin.orders.index')
+                ->with('success', 'Pesanan berhasil dihapus.');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Gagal menghapus pesanan.');
+        }
     }
 }

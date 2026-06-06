@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
@@ -13,18 +13,26 @@ class OrderItem extends Model
         'order_id',
         'product_id',
         'quantity',
-        'price'
+        'price',
     ];
 
-    // Relasi: Item ini milik Order yang mana
+    protected $casts = [
+        'quantity' => 'integer',
+        'price'    => 'float',
+    ];
+
     public function order()
     {
         return $this->belongsTo(Order::class);
     }
 
-    // Relasi: Item ini merujuk ke Produk yang mana
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function getSubtotalAttribute()
+    {
+        return $this->quantity * $this->price;
     }
 }
