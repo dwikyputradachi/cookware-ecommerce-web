@@ -195,6 +195,20 @@
     .status-badge.rejected { background: #fee2e2; color: #b91c1c; }
     .status-badge.default  { background: #f1f5f9; color: #475569; }
 
+    .archive-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #475569;
+        background: #f1f5f9;
+        padding: 4px 8px;
+        border-radius: 999px;
+        white-space: nowrap;
+        margin-top: 5px;
+    }
+
     .proof-indicator {
         display: inline-flex;
         align-items: center;
@@ -226,9 +240,29 @@
         text-decoration: none;
         transition: background 0.2s;
         white-space: nowrap;
+        border: none;
+        cursor: pointer;
     }
 
     .btn-view:hover { background: #bfdbfe; }
+
+    .btn-archive {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .btn-archive:hover {
+        background: #e2e8f0;
+    }
+
+    .btn-restore {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .btn-restore:hover {
+        background: #bbf7d0;
+    }
 
     .empty-state {
         padding: 48px 24px;
@@ -286,6 +320,13 @@
         font-size: 13px;
     }
 
+    .action-row {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
     .pagination-wrap {
         padding: 16px;
         border-top: 1px solid #f1f5f9;
@@ -307,41 +348,43 @@
 </style>
 
 @php
-    function orderStatusBadge($status) {
-        return match ($status) {
-            'pending' => [
-                'class' => 'pending',
-                'icon' => 'fas fa-hourglass-half',
-                'label' => 'Pending',
-            ],
-            'waiting_verification' => [
-                'class' => 'waiting',
-                'icon' => 'fas fa-clock',
-                'label' => 'Menunggu',
-            ],
-            'completed' => [
-                'class' => 'done',
-                'icon' => 'fas fa-check-circle',
-                'label' => 'Disetujui',
-            ],
-            'cancelled' => [
-                'class' => 'rejected',
-                'icon' => 'fas fa-times-circle',
-                'label' => 'Ditolak',
-            ],
-            default => [
-                'class' => 'default',
-                'icon' => 'fas fa-circle-info',
-                'label' => ucfirst(str_replace('_', ' ', $status)),
-            ],
-        };
+    if (!function_exists('orderStatusBadge')) {
+        function orderStatusBadge($status) {
+            return match ($status) {
+                'pending' => [
+                    'class' => 'pending',
+                    'icon' => 'fas fa-hourglass-half',
+                    'label' => 'Pending',
+                ],
+                'waiting_verification' => [
+                    'class' => 'waiting',
+                    'icon' => 'fas fa-clock',
+                    'label' => 'Menunggu',
+                ],
+                'completed' => [
+                    'class' => 'done',
+                    'icon' => 'fas fa-check-circle',
+                    'label' => 'Disetujui',
+                ],
+                'cancelled' => [
+                    'class' => 'rejected',
+                    'icon' => 'fas fa-times-circle',
+                    'label' => 'Ditolak',
+                ],
+                default => [
+                    'class' => 'default',
+                    'icon' => 'fas fa-circle-info',
+                    'label' => ucfirst(str_replace('_', ' ', $status)),
+                ],
+            };
+        }
     }
 @endphp
 
 <div class="page-header">
     <div>
         <h1>Daftar Pesanan</h1>
-        <p>Kelola pesanan masuk tanpa memuat gambar bukti pembayaran di halaman daftar.</p>
+        <p>Kelola pesanan masuk tanpa menghapus data transaksi dan review pelanggan.</p>
     </div>
 </div>
 
@@ -362,11 +405,17 @@
             <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Ditolak</option>
         </select>
 
+        <select name="archive" class="filter-select">
+            <option value="active" {{ request('archive', 'active') === 'active' ? 'selected' : '' }}>Order Aktif</option>
+            <option value="archived" {{ request('archive') === 'archived' ? 'selected' : '' }}>Order Arsip</option>
+            <option value="all" {{ request('archive') === 'all' ? 'selected' : '' }}>Semua Order</option>
+        </select>
+
         <button type="submit" class="btn-filter">
             <i class="fas fa-search"></i> Filter
         </button>
 
-        @if(request()->hasAny(['search', 'status']) && (request('search') || request('status') !== 'all'))
+        @if(request()->hasAny(['search', 'status', 'archive']) && (request('search') || request('status') !== 'all' || request('archive', 'active') !== 'active'))
             <a href="{{ route('admin.orders.index') }}" class="btn-reset">
                 <i class="fas fa-rotate-left"></i> Reset
             </a>
@@ -399,6 +448,12 @@
                 <tr>
                     <td>
                         <span class="order-id">#{{ $order->id }}</span>
+
+                        @if($order->archived_at)
+                            <div class="archive-badge">
+                                <i class="fas fa-box-archive"></i> Arsip
+                            </div>
+                        @endif
                     </td>
 
                     <td>
@@ -437,19 +492,31 @@
                     </td>
 
                     <td class="center">
-                        <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                        <div class="action-row">
                             <a href="{{ route('admin.orders.show', $order->id) }}" class="btn-view">
                                 <i class="fas fa-eye"></i> Detail
                             </a>
 
-                            @if(in_array($order->status, ['completed', 'cancelled']))
-                                <form method="POST" action="{{ route('admin.orders.destroy', $order->id) }}"
-                                    onsubmit="return confirm('Yakin ingin menghapus pesanan ini? Data pesanan akan hilang dari database.');">
+                            @if(!$order->archived_at && in_array($order->status, ['completed', 'cancelled']))
+                                <form method="POST"
+                                      action="{{ route('admin.orders.archive', $order->id) }}"
+                                      onsubmit="return confirm('Arsipkan pesanan ini? Data transaksi dan review tetap aman.');">
                                     @csrf
-                                    @method('DELETE')
 
-                                    <button type="submit" class="btn-view" style="background:#fee2e2;color:#b91c1c;border:none;">
-                                        <i class="fas fa-trash"></i> Hapus
+                                    <button type="submit" class="btn-view btn-archive">
+                                        <i class="fas fa-box-archive"></i> Arsip
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if($order->archived_at)
+                                <form method="POST"
+                                      action="{{ route('admin.orders.restore', $order->id) }}"
+                                      onsubmit="return confirm('Pulihkan pesanan dari arsip?');">
+                                    @csrf
+
+                                    <button type="submit" class="btn-view btn-restore">
+                                        <i class="fas fa-rotate-left"></i> Pulihkan
                                     </button>
                                 </form>
                             @endif
@@ -477,7 +544,15 @@
 
             <div class="order-card">
                 <div class="order-card-header">
-                    <span class="order-id">#{{ $order->id }}</span>
+                    <div>
+                        <span class="order-id">#{{ $order->id }}</span>
+
+                        @if($order->archived_at)
+                            <div class="archive-badge">
+                                <i class="fas fa-box-archive"></i> Arsip
+                            </div>
+                        @endif
+                    </div>
 
                     <span class="status-badge {{ $badge['class'] }}">
                         <i class="{{ $badge['icon'] }}"></i> {{ $badge['label'] }}
@@ -522,18 +597,38 @@
                     </div>
                 </div>
 
-                <a href="{{ route('admin.orders.show', $order->id) }}" class="btn-view" style="width:100%;justify-content:center;">
+                <a href="{{ route('admin.orders.show', $order->id) }}"
+                   class="btn-view"
+                   style="width:100%;justify-content:center;">
                     <i class="fas fa-eye"></i> Lihat Detail
                 </a>
-                @if(in_array($order->status, ['completed', 'cancelled']))
-                    <form method="POST" action="{{ route('admin.orders.destroy', $order->id) }}"
-                        onsubmit="return confirm('Yakin ingin menghapus pesanan ini?');"
-                        style="margin-top:8px;">
-                        @csrf
-                        @method('DELETE')
 
-                        <button type="submit" class="btn-view" style="width:100%;justify-content:center;background:#fee2e2;color:#b91c1c;border:none;">
-                            <i class="fas fa-trash"></i> Hapus Pesanan
+                @if(!$order->archived_at && in_array($order->status, ['completed', 'cancelled']))
+                    <form method="POST"
+                          action="{{ route('admin.orders.archive', $order->id) }}"
+                          onsubmit="return confirm('Arsipkan pesanan ini? Data transaksi dan review tetap aman.');"
+                          style="margin-top:8px;">
+                        @csrf
+
+                        <button type="submit"
+                                class="btn-view btn-archive"
+                                style="width:100%;justify-content:center;">
+                            <i class="fas fa-box-archive"></i> Arsipkan Pesanan
+                        </button>
+                    </form>
+                @endif
+
+                @if($order->archived_at)
+                    <form method="POST"
+                          action="{{ route('admin.orders.restore', $order->id) }}"
+                          onsubmit="return confirm('Pulihkan pesanan dari arsip?');"
+                          style="margin-top:8px;">
+                        @csrf
+
+                        <button type="submit"
+                                class="btn-view btn-restore"
+                                style="width:100%;justify-content:center;">
+                            <i class="fas fa-rotate-left"></i> Pulihkan Pesanan
                         </button>
                     </form>
                 @endif

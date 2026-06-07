@@ -19,12 +19,14 @@ class Order extends Model
         'total_price',
         'status',
         'payment_proof',
+        'archived_at',
     ];
 
     protected $casts = [
         'total_price' => 'float',
         'created_at'  => 'datetime',
         'updated_at'  => 'datetime',
+        'archived_at' => 'datetime',
     ];
 
     public function user()

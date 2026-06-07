@@ -159,7 +159,7 @@
                         <div class="p-2 bg-orange-50 rounded-lg text-(--color-secondary)">
                             <i data-lucide="award" class="w-5 h-5"></i>
                         </div>
-                        <span class="text-xs font-medium text-gray-600">Original Bos</span>
+                        <span class="text-xs font-medium text-gray-600">Original</span>
                     </div>
                 </div>
 

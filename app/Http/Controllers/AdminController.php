@@ -300,6 +300,16 @@ class AdminController extends Controller
     {
         $query = Order::with('user')->latest();
 
+        $archive = $request->get('archive', 'active');
+
+        if ($archive === 'archived') {
+            $query->whereNotNull('archived_at');
+        } elseif ($archive === 'all') {
+            // tampilkan semua
+        } else {
+            $query->whereNull('archived_at');
+        }
+
         if ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
@@ -313,7 +323,7 @@ class AdminController extends Controller
                 }
 
                 $q->orWhere('customer_name', 'like', '%' . $search . '%')
-                  ->orWhere('customer_phone', 'like', '%' . $search . '%');
+                ->orWhere('customer_phone', 'like', '%' . $search . '%');
             });
         }
 
@@ -391,25 +401,25 @@ class AdminController extends Controller
         }
     }
 
-    public function destroyOrder(Order $order)
+   public function archiveOrder(Order $order)
     {
         if (!in_array($order->status, ['completed', 'cancelled'])) {
-            return back()->with('error', 'Pesanan yang masih pending/menunggu verifikasi tidak boleh dihapus.');
+            return back()->with('error', 'Pesanan yang masih pending/menunggu verifikasi tidak boleh diarsipkan.');
         }
 
-        try {
-            DB::transaction(function () use ($order) {
-                $order->items()->delete();
-                $order->delete();
-            });
+        $order->update([
+            'archived_at' => now(),
+        ]);
 
-            return redirect()
-                ->route('admin.orders.index')
-                ->with('success', 'Pesanan berhasil dihapus.');
-        } catch (\Throwable $e) {
-            report($e);
+        return back()->with('success', 'Pesanan berhasil diarsipkan.');
+    }
 
-            return back()->with('error', 'Gagal menghapus pesanan.');
-        }
+    public function restoreOrder(Order $order)
+    {
+        $order->update([
+            'archived_at' => null,
+        ]);
+
+        return back()->with('success', 'Pesanan berhasil dipulihkan dari arsip.');
     }
 }
