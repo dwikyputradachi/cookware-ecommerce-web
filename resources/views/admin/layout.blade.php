@@ -9,7 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
-
+    <link rel="icon" href="{{ asset('favicon.png') }}?v=3" type="image/png" sizes="512x512">
+<link rel="shortcut icon" href="{{ asset('favicon.png') }}?v=3" type="image/png">
+<link rel="apple-touch-icon" href="{{ asset('favicon.png') }}?v=3">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
