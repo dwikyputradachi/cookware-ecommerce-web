@@ -75,7 +75,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/settings', [AdminController::class, 'settings'])->name('settings.index');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
     Route::get('/security', [AdminSecurityController::class, 'index'])->name('security.index');
-    Route::post('/security/send-otp', [AdminSecurityController::class, 'sendOtp'])->name('security.send-otp');
+    Route::post('/security/setup-authenticator', [AdminSecurityController::class, 'setupAuthenticator'])->name('security.setup-authenticator');
+    Route::post('/security/reset-authenticator', [AdminSecurityController::class, 'resetAuthenticator'])->name('security.reset-authenticator');
     Route::post('/security/update-account', [AdminSecurityController::class, 'updateAccount'])->name('security.update-account');
 });
 // Route untuk halaman informasi dinamis
