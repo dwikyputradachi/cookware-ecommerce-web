@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>@yield('title', 'Murazon Cookware')</title>
-    
+    <link rel="icon" href="{{ asset('favicon.png') }}?v=3" type="image/png" sizes="512x512">
+<link rel="shortcut icon" href="{{ asset('favicon.png') }}?v=3" type="image/png">
+<link rel="apple-touch-icon" href="{{ asset('favicon.png') }}?v=3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,7 +14,7 @@
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <style>
@@ -29,18 +31,21 @@
 <body class="bg-[#F8FAFC]" x-data="{ mobileMenu: false }">
 
 @php
-    $cartCount = collect(session('cart', []))->sum(fn($i) => $i['quantity']);   
+    $cartCount = collect(session('cart', []))->sum(fn($i) => $i['quantity'] ?? 0);   
 @endphp
 
-<nav class="nav-gradient sticky top-0 z-[100] shadow-xl">
+<nav class="nav-gradient sticky top-0 z-100 shadow-xl">
     <div class="container mx-auto px-4 py-3">
         <div class="flex items-center justify-between gap-4">
             
-            <a href="/" class="flex flex-col items-start shrink-0 group">
-                <img src="{{ asset('img/logo-murazon.png') }}" class="h-6 md:h-7 w-auto object-contain mb-0.5 transition-transform group-hover:scale-105">
-                <div class="flex flex-col items-start leading-none">
-                    <span class="text-[9px] md:text-[10px] font-bold text-white tracking-tight uppercase">Murazon Shopping Market</span>
-                </div>
+            <a href="/" class="inline-flex flex-col items-start shrink-0 group w-fit">
+                <img 
+                    src="{{ asset('img/logo-murazon.png') }}" 
+                    alt="Murazon"
+                    class="h-6 md:h-7 w-auto object-contain mb-0.5 transition-transform group-hover:scale-105">
+                <span class="block w-full text-[9px] md:text-[12px] font-regular text-white leading-none tracking-[0.06wem] text-center">
+                    Murazon Shopping Market
+                </span>
             </a>
 
             <div class="hidden lg:flex flex-1 max-w-xl items-center bg-white/10 rounded-xl border border-white/20 overflow-visible relative">
@@ -69,7 +74,7 @@
 
             <div class="flex items-center gap-3 shrink-0">
                 <div class="hidden sm:flex items-center gap-3">
-                    <a href="#" class="flex items-center gap-2 bg-orange-500/20 hover:bg-orange-500/40 px-3 py-1.5 rounded-lg border border-orange-400/30 transition-all text-[10px] font-bold text-orange-200 uppercase tracking-tight">
+                    <a href="/promo" class="flex items-center gap-2 bg-orange-500/20 hover:bg-orange-500/40 px-3 py-1.5 rounded-lg border border-orange-400/30 transition-all text-[10px] font-bold text-orange-200 uppercase tracking-tight">
                         <i data-lucide="zap" class="w-3.5 h-3.5 fill-orange-400 text-orange-400"></i>
                         Promo
                     </a>
@@ -78,6 +83,10 @@
                         Keranjang ({{ $cartCount }})
                     </a>
                 </div>
+                <a href="{{ route('orders.index') }}" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg border border-white/10 transition-all text-[10px] font-bold text-white uppercase tracking-tight">
+                    <i data-lucide="package" class="w-4 h-4 text-orange-300"></i>
+                    Pesanan
+                </a>
 
                 <a href="/cart" class="relative p-2 bg-orange-500 rounded-lg text-white lg:hidden">
                     <i data-lucide="shopping-bag" class="w-5 h-5"></i>
@@ -122,47 +131,60 @@
 </nav>
 
 <main class="min-h-screen">@yield('content')</main>
-
+@php
+    $adminWa = \App\Models\Setting::getValue('whatsapp', '628127030826');
+@endphp
 <footer class="bg-white border-t border-gray-100 pt-16 pb-8 mt-20">
     <div class="container mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
             <div>
                 <img src="{{ asset('img/logo-murazon.png') }}" class="h-10 mb-4">
-                <p class="text-[11px] font-bold text-orange-600 uppercase mb-4 tracking-tighter">Murazon Shopping Market</p>
+                <p class="text-[16px] font-medium text-orange-600 tittlecase mb-4 tracking-tighter">{{ $siteSettings['site_name'] ?? 'Murazon Shopping Market' }}</p>
                 <div class="space-y-2 text-sm text-gray-500 font-medium">
-                    <p>Jam Operasional : 09.00 wib - 18.00 wib</p>
-                    <p>Whatsapp : +62 812-703-0826</p>
-                    <p>E-mail : customer_service@murazon.com</p>
+                    <p>Jam Operasional : {{ $siteSettings['operational_hours'] ?? '09.00 WIB - 18.00 WIB' }}</p>
+                    <p>Whatsapp : {{ $siteSettings['whatsapp'] ?? '+62 812-703-0826' }}</p>
+                    <p>E-mail : {{ $siteSettings['email'] ?? 'customer_service@murazon.com' }}</p>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4 text-sm font-semibold text-gray-600">
                 <div class="space-y-3">
                     <a href="{{ route('about.us') }}" class="block hover:text-orange-600 transition-colors">Tentang Kami</a>
                     <a href="{{ route('garansi') }}" class="block hover:text-orange-600 transition-colors">Kebijakan Garansi</a>
+                    <a href="{{ route('return') }}" class="block hover:text-orange-600 transition-colors">Ketentuan return barang dan penggantian uang</a>
                 </div>
                 <div class="space-y-3">
-                    <a href="{{ route('bantuan') }}" class="block hover:text-orange-600 transition-colors">Bantuan Belanja</a>
+                    <a href="{{ route('panduan') }}" class="block hover:text-orange-600 transition-colors">Panduan Belanja</a>
                     <a href="{{ route('penipuan') }}" class="block hover:text-orange-600 transition-colors">Waspada Penipuan</a>
+                   
                 </div>
             </div>
             <div class="flex flex-col items-start md:items-end gap-6">
                 <div class="flex gap-3">
-                    <a href="#" class="footer-social-icon w-10 h-10 bg-[#3b5998] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="footer-social-icon w-10 h-10 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="footer-social-icon w-10 h-10 bg-[#25D366] text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-whatsapp"></i></a>
-                    <a href="#" class="footer-social-icon w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shadow-md"><i class="fab fa-tiktok"></i></a>
+                    <a href="{{ $siteSettings['facebook_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-[#3b5998] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="{{ $siteSettings['instagram_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/{{ $adminWa }}" class="footer-social-icon w-10 h-10 bg-[#25D366] text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    <a href="{{ $siteSettings['tiktok_url'] ?? '#' }}" class="footer-social-icon w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center shadow-md" target="_blank"><i class="fab fa-tiktok"></i></a>
+                </div>
+                {{-- QR Website --}}
+                <div class="flex flex-col items-center gap-1">
+                    <div class="w-16 h-16 bg-white rounded-xl p-1 shadow-md border border-gray-100">
+                        <img src="{{ asset('img/asset/murazonqr.png') }}"
+                            alt="Scan untuk buka website Murazon"
+                            class="w-full h-full object-contain">
+                    </div>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Scan QR</span>
                 </div>
                 <div class="text-sm text-gray-400 font-bold tracking-[0.2em] uppercase">Ikuti Kami</div>
             </div>
         </div>
         <div class="border-t border-gray-100 pt-8 text-center">
-            <p class="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">&copy; 2026 MURAZON • KUALITAS PREMIUM PERLENGKAPAN DAPUR</p>
+            <p class="text-[10px] text-gray-400 font-bold tracking-[0.2em] uppercase">&copy; 2026 MURAZON • Corporation</p>
         </div>
     </div>
 </footer>
 
-<div class="fixed bottom-6 right-6 z-[110]">
-    <a href="https://wa.me/628127030826" target="_blank" class="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#25D366] shadow-2xl transition-all hover:scale-110 text-white">
+<div class="fixed bottom-6 right-6 z-110">
+    <a href="https://wa.me/{{ $adminWa }}" target="_blank" class="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#25D366] shadow-2xl transition-all hover:scale-110 text-white">
         <i class="fab fa-whatsapp text-3xl"></i>
     </a>
 </div>

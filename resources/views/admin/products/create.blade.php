@@ -4,124 +4,434 @@
 @section('page-title', 'Tambah Produk Baru')
 
 @section('content')
-    <div class="max-w-2xl">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-            <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
+@php
+    $oldPrice = old('price');
+    $priceValue = $oldPrice !== null && $oldPrice !== '' ? (int) preg_replace('/[^0-9]/', '', $oldPrice) : '';
+    $priceDisplay = $priceValue !== '' ? number_format($priceValue, 0, ',', '.') : '';
+@endphp
 
-                {{-- Nama Produk --}}
-                <div class="mb-6">
-                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Nama Produk <span class="text-red-500">*</span></label>
-                    <input type="text" id="name" name="name" value="{{ old('name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('name') border-red-500 @enderror" placeholder="Masukkan nama produk">
-                    @error('name')
-                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                    @enderror
-                </div>
+<style>
+    .form-card {
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        border: 1px solid #e2e8f0;
+        padding: 32px;
+    }
 
-                {{-- Deskripsi --}}
-                <div class="mb-6">
-                    <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Deskripsi</label>
-                    <textarea id="description" name="description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('description') border-red-500 @enderror" placeholder="Masukkan deskripsi produk">{{ old('description') }}</textarea>
-                    @error('description')
-                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                    @enderror
-                </div>
+    .field { margin-bottom: 22px; }
 
-                {{-- Harga --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label for="price" class="block text-sm font-semibold text-gray-700 mb-2">Harga <span class="text-red-500">*</span></label>
-                        <div class="flex items-center">
-                            <span class="px-4 py-2 bg-gray-100 border border-gray-300 border-r-0 rounded-l-lg text-gray-700">Rp</span>
-                            <input type="number" id="price" name="price" value="{{ old('price') }}" required step="0.01" min="0" class="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('price') border-red-500 @enderror" placeholder="0">
-                        </div>
-                        @error('price')
-                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                        @enderror
+    .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 7px;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        font-family: inherit;
+        font-size: 14px;
+        color: #1e293b;
+        background: white;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+
+    .field input.is-error { border-color: #ef4444; }
+
+    .field-error {
+        color: #ef4444;
+        font-size: 12px;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .input-prefix {
+        display: flex;
+        align-items: stretch;
+    }
+
+    .input-prefix .prefix-label {
+        padding: 10px 14px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-right: none;
+        border-radius: 9px 0 0 9px;
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .input-prefix input {
+        border-radius: 0 9px 9px 0 !important;
+    }
+
+    .upload-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 10px;
+        padding: 28px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .upload-zone:hover {
+        border-color: #3b82f6;
+        background: #eff6ff;
+    }
+
+    .upload-zone i {
+        font-size: 28px;
+        color: #94a3b8;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .upload-zone p {
+        color: #374151;
+        font-size: 14px;
+        font-weight: 500;
+        margin: 0 0 3px;
+    }
+
+    .upload-zone span {
+        color: #94a3b8;
+        font-size: 12px;
+    }
+
+    .toggle-card {
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+    }
+
+    .toggle-card.blue {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+    }
+
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .toggle-label input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+    .toggle-hint {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 6px;
+        padding-left: 28px;
+    }
+
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .btn-primary {
+        flex: 1;
+        padding: 12px 20px;
+        background: #1e40af;
+        color: white;
+        border: none;
+        border-radius: 9px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: opacity 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-primary:hover { opacity: 0.88; }
+
+    .btn-secondary {
+        flex: 1;
+        padding: 12px 20px;
+        background: #f1f5f9;
+        color: #475569;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 9px;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    @media (max-width: 640px) {
+        .form-card { padding: 20px 16px; }
+        .two-col { grid-template-columns: 1fr; gap: 0; }
+        .form-actions { flex-direction: column; }
+        .btn-primary, .btn-secondary { flex: none; width: 100%; }
+    }
+</style>
+
+<div style="max-width: 680px;">
+    <div class="form-card">
+        <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+
+            <div class="field">
+                <label for="name">Nama Produk <span style="color:#ef4444">*</span></label>
+                <input type="text"
+                       id="name"
+                       name="name"
+                       value="{{ old('name') }}"
+                       required
+                       placeholder="Masukkan nama produk"
+                       class="{{ $errors->has('name') ? 'is-error' : '' }}">
+                @error('name')
+                    <p class="field-error"><i class="fas fa-circle-exclamation"></i> {{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="field">
+                <label for="description">Deskripsi</label>
+                <textarea id="description"
+                          name="description"
+                          rows="4"
+                          placeholder="Masukkan deskripsi produk"
+                          class="{{ $errors->has('description') ? 'is-error' : '' }}">{{ old('description') }}</textarea>
+                @error('description')
+                    <p class="field-error"><i class="fas fa-circle-exclamation"></i> {{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="two-col">
+                <div class="field">
+                    <label for="price_display">Harga <span style="color:#ef4444">*</span></label>
+                    <div class="input-prefix">
+                        <span class="prefix-label">Rp</span>
+
+                        <input type="text"
+                               id="price_display"
+                               value="{{ $priceDisplay }}"
+                               required
+                               inputmode="numeric"
+                               placeholder="0"
+                               class="{{ $errors->has('price') ? 'is-error' : '' }}">
+
+                        <input type="hidden"
+                               id="price"
+                               name="price"
+                               value="{{ $priceValue }}">
                     </div>
-
-                    {{-- Stok --}}
-                    <div>
-                        <label for="stock" class="block text-sm font-semibold text-gray-700 mb-2">Stok <span class="text-red-500">*</span></label>
-                        <input type="number" id="stock" name="stock" value="{{ old('stock') }}" required min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('stock') border-red-500 @enderror" placeholder="0">
-                        @error('stock')
-                            <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                        @enderror
-                    </div>
-                </div>
-
-                {{-- Kategori --}}
-                <div class="mb-6">
-                    <label for="category" class="block text-sm font-semibold text-gray-700 mb-2">Kategori</label>
-                    <input type="text" id="category" name="category" value="{{ old('category') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('category') border-red-500 @enderror" placeholder="Contoh: Panci, Wajan, dll">
-                    @error('category')
-                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                    @error('price')
+                        <p class="field-error"><i class="fas fa-circle-exclamation"></i> {{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- Gambar --}}
-                <div class="mb-6">
-                    <label for="image" class="block text-sm font-semibold text-gray-700 mb-2">Gambar Produk</label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors" onclick="document.getElementById('image').click()">
-                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2 block"></i>
-                        <p class="text-gray-700 font-medium">Klik untuk upload gambar</p>
-                        <p class="text-gray-500 text-sm">PNG, JPG, GIF (Maks 2MB)</p>
-                        <input type="file" id="image" name="image" accept="image/*" class="hidden" onchange="previewImage(event)">
-                    </div>
-                    <div id="imagePreview" class="mt-3 hidden">
-                        <img id="previewImg" src="" alt="Preview" class="h-32 w-32 object-cover rounded-lg">
-                    </div>
-                    @error('image')
-                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                <div class="field">
+                    <label for="stock">Stok <span style="color:#ef4444">*</span></label>
+                    <input type="number"
+                           id="stock"
+                           name="stock"
+                           value="{{ old('stock') }}"
+                           required
+                           min="0"
+                           placeholder="0"
+                           class="{{ $errors->has('stock') ? 'is-error' : '' }}">
+                    @error('stock')
+                        <p class="field-error"><i class="fas fa-circle-exclamation"></i> {{ $message }}</p>
                     @enderror
                 </div>
+            </div>
 
-                {{-- URL Video --}}
-                <div class="mb-6">
-                    <label for="video_url" class="block text-sm font-semibold text-gray-700 mb-2">URL Video (Opsional)</label>
-                    <input type="url" id="video_url" name="video_url" value="{{ old('video_url') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('video_url') border-red-500 @enderror" placeholder="https://...">
-                    @error('video_url')
-                        <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                    @enderror
+            <div class="field">
+                <label for="category">Kategori</label>
+                <input type="text"
+                       id="category"
+                       name="category"
+                       value="{{ old('category') }}"
+                       list="category-suggestions"
+                       placeholder="Contoh: Panci, Wajan, dll"
+                       class="{{ $errors->has('category') ? 'is-error' : '' }}">
+
+                <datalist id="category-suggestions">
+                    @foreach(App\Models\Product::distinct()->pluck('category')->filter() as $cat)
+                        <option value="{{ $cat }}">
+                    @endforeach
+                </datalist>
+
+                @error('category')
+                    <p class="field-error"><i class="fas fa-circle-exclamation"></i> {{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="field">
+                <label>Gambar Produk</label>
+
+                <div class="upload-zone" onclick="document.getElementById('image').click()">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <p>Klik untuk upload gambar</p>
+                    <span>JPG, PNG, WEBP — Maks 5MB</span>
+
+                    <input type="file"
+                           id="image"
+                           name="image"
+                           accept=".jpg,.jpeg,.png,.webp"
+                           class="hidden"
+                           onchange="previewImage(event)">
                 </div>
 
-                {{-- COD Available --}}
-                <div class="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" id="is_cod_available" name="is_cod_available" value="1" {{ old('is_cod_available') ? 'checked' : '' }} class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
-                        <span class="text-sm font-semibold text-gray-700">
-                            <i class="fas fa-check-circle text-blue-600 mr-2"></i>Aktifkan COD (Cash On Delivery)
-                        </span>
-                    </label>
-                    <p class="text-xs text-gray-600 mt-2 ml-8">Jika diaktifkan, pelanggan dapat memilih pembayaran COD untuk produk ini</p>
+                <div id="imagePreview" class="hidden" style="margin-top:12px;">
+                    <p style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px;">
+                        Pratinjau gambar:
+                    </p>
+                    <img id="previewImg"
+                         src=""
+                         alt="Preview"
+                         style="height:100px;width:100px;object-fit:cover;border-radius:10px;border:1px solid #e2e8f0;">
                 </div>
 
-                {{-- Submit Buttons --}}
-                <div class="flex gap-3">
-                    <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i>
-                        Simpan Produk
-                    </button>
-                    <a href="{{ route('admin.products.index') }}" class="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-semibold flex items-center justify-center gap-2">
-                        <i class="fas fa-times"></i>
-                        Batal
-                    </a>
-                </div>
-            </form>
-        </div>
+                @error('image')
+                    <p class="field-error"><i class="fas fa-circle-exclamation"></i> {{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="field">
+                <label for="video_url">URL Video <span style="color:#94a3b8;font-weight:400;">(Opsional)</span></label>
+                <input type="url"
+                       id="video_url"
+                       name="video_url"
+                       value="{{ old('video_url') }}"
+                       placeholder="https://..."
+                       class="{{ $errors->has('video_url') ? 'is-error' : '' }}">
+                @error('video_url')
+                    <p class="field-error"><i class="fas fa-circle-exclamation"></i> {{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="toggle-card blue">
+                <label class="toggle-label">
+                    <input type="checkbox"
+                           id="is_cod_available"
+                           name="is_cod_available"
+                           value="1"
+                           {{ old('is_cod_available') ? 'checked' : '' }}>
+                    <i class="fas fa-motorcycle" style="color:#2563eb;"></i>
+                    Aktifkan COD (Cash On Delivery)
+                </label>
+                <p class="toggle-hint">Pelanggan dapat memilih pembayaran COD untuk produk ini</p>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-floppy-disk"></i> Simpan Produk
+                </button>
+
+                <a href="{{ route('admin.products.index') }}" class="btn-secondary">
+                    <i class="fas fa-xmark"></i> Batal
+                </a>
+            </div>
+        </form>
     </div>
+</div>
 
-    <script>
-        function previewImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('previewImg').src = e.target.result;
-                    document.getElementById('imagePreview').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
+<script>
+    function onlyDigits(value) {
+        return (value || '').toString().replace(/[^0-9]/g, '');
+    }
+
+    function formatRupiah(value) {
+        const digits = onlyDigits(value);
+
+        if (!digits) return '';
+
+        return new Intl.NumberFormat('id-ID').format(parseInt(digits, 10));
+    }
+
+    function syncCurrencyInput(displayId, hiddenId) {
+        const display = document.getElementById(displayId);
+        const hidden = document.getElementById(hiddenId);
+
+        if (!display || !hidden) return;
+
+        display.addEventListener('input', function () {
+            const digits = onlyDigits(this.value);
+
+            hidden.value = digits;
+            this.value = formatRupiah(digits);
+        });
+    }
+
+    function previewImage(event) {
+        const file = event.target.files[0];
+
+        if (!file) return;
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        const maxSize = 5 * 1024 * 1024;
+
+        if (!allowedTypes.includes(file.type)) {
+            alert('Format gambar harus JPG, PNG, atau WEBP.');
+            event.target.value = '';
+            return;
         }
-    </script>
+
+        if (file.size > maxSize) {
+            alert('Ukuran gambar maksimal 5MB.');
+            event.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = e => {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').classList.remove('hidden');
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        syncCurrencyInput('price_display', 'price');
+    });
+</script>
 @endsection

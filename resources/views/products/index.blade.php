@@ -3,64 +3,29 @@
 @section('title', 'Katalog - Murazon Cookware')
 
 @push('styles')
-{{-- Font Khusus untuk kesan Premium (Opsional, pastikan terhubung di app.blade.php atau buka komen ini) --}}
-{{-- <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,900&display=swap" rel="stylesheet"> --}}
-
 <style>
     :root {
         --primary: #E1700F;
         --primary-dark: #6B3005;
-        --accent: #FDBA74; /* orange-300 */
+        --accent: #FDBA74;
     }
-
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* Efek Hover Card ala E-commerce Premium */
     .product-card {
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         will-change: transform, box-shadow;
     }
-
     .product-card:hover {
         transform: translateY(-8px) scale(1.01);
         box-shadow: 0 25px 50px -12px rgba(107, 48, 5, 0.15);
         border-color: rgba(225, 112, 15, 0.2);
     }
-
-    /* --- HIASAN SIGNATURE HERO SECTION --- */
-    .hero-signature {
-        background: linear-gradient(135deg, #4c2203 0%, #a1500a 40%, var(--primary) 100%);
-        position: relative;
-        overflow: hidden;
+    #product-grid-wrapper {
+        transition: opacity 0.2s ease;
     }
-
-    /* Pola Abstrak Halus di Background */
-    .hero-signature::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        opacity: 0.5;
-    }
-
-    /* Efek Cahaya Sorot (Glow) */
-    .hero-glow {
-        position: absolute;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(253, 186, 116, 0.15) 0%, rgba(225, 112, 15, 0) 70%);
-        border-radius: 50%;
-        top: -100px;
-        right: -100px;
+    #product-grid-wrapper.loading {
+        opacity: 0.4;
         pointer-events: none;
-    }
-
-    /* Styling Teks Khususs */
-    .font-premium-italic {
-        font-family: 'Playfair Display', serif; /* Gunakan font serif jika tersedia */
-        font-weight: 900;
-        font-style: italic;
     }
 </style>
 @endpush
@@ -68,148 +33,303 @@
 @section('content')
 <div class="bg-gray-50 min-h-screen pb-20">
 
-    {{-- 1. PENGGANTI BANNER: SIGNATURE HERO SECTION --}}
+    {{-- 1. HERO --}}
     <div class="container mx-auto px-4 pt-8">
-        {{-- Warnanya aku kunci pakai HEX biar gak jadi putih --}}
-        <div class="rounded-[3rem] p-10 md:p-20 text-white shadow-2xl border-4 border-white relative overflow-hidden" 
-             style="background: linear-gradient(135deg, #4c2203 0%, #a1500a 40%, #E1700F 100%);">
-            
-            {{-- Efek Glow Decorative --}}
-            <div class="absolute w-[400px] h-[400px] rounded-full blur-[100px] opacity-20 -top-20 -right-20 pointer-events-none" 
-                 style="background: radial-gradient(circle, #FDBA74 0%, transparent 70%);"></div>
-            
-            <div class="relative z-10 grid md:grid-cols-2 gap-10 items-center">
-                
-                {{-- KOLOM TEKS --}}
-                <div class="space-y-6">
-                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/20 backdrop-blur-md border border-white/10 shadow-inner">
-                        <i data-lucide="crown" class="w-4 h-4 text-orange-300"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-orange-100">
-                            The Culinary Standard
-                        </span>
-                    </div>
+        @if($banners->isNotEmpty())
+        <div class="relative rounded-4xl overflow-hidden shadow-2xl"
+            x-data="carousel({{ $banners->count() }})"
+            x-init="init()"
+            style="height: 420px;"
+            @touchstart.passive="touchStart($event)"
+            @touchend.passive="touchEnd($event)">
 
-                    <h2 class="text-4xl md:text-7xl font-black italic uppercase leading-[0.9] tracking-tighter text-white">
-                        Authentic<br> 
-                        <span style="color: #FDBA74;">Cookware</span>
-                    </h2>
-
-                    {{-- Kotak Deskripsi dengan background agak gelap biar teks putihnya JELAS --}}
-                    <div class="p-5 rounded-2xl bg-black/20 backdrop-blur-sm border border-white/5 shadow-lg max-w-xl">
-                        <p class="text-orange-50 text-sm md:text-lg font-medium opacity-90 leading-relaxed">
-                            Mewujudkan kelezatan bintang lima di dapur Anda. Didesain dengan presisi, material premium, dan durabilitas tanpa kompromi untuk performa masak terbaik.
-                        </p>
-                    </div>
-
-                    {{-- Tombol --}}
-                    <div class="pt-4 flex flex-wrap gap-4 items-center">
-                        <a href="#koleksi" class="px-8 py-3.5 bg-white text-gray-950 rounded-full font-extrabold text-sm uppercase tracking-wider shadow-lg hover:bg-orange-50 transition-all flex items-center gap-2 group">
-                            Jelajahi Produk
-                            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                        </a>
-                        <span class="text-xs text-orange-200 font-bold tracking-wide uppercase">Garansi Seumur Hidup*</span>
-                    </div>
+            {{-- Slides --}}
+            <div class="relative w-full h-full">
+                @foreach($banners as $i => $banner)
+                <div class="absolute inset-0 transition-opacity duration-700"
+                    :class="current === {{ $i }} ? 'opacity-100 z-10' : 'opacity-0 z-0'">
+                    @if($banner->link)
+                    <a href="{{ $banner->link }}">
+                    @endif
+                        <img src="{{ $banner->image }}"
+                            alt="{{ $banner->title }}"
+                            class="w-full h-full object-cover">
+                        @if($banner->title)
+                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-linear-to-t from-black/50 to-transparent">
+                            <p class="text-white font-bold text-lg md:text-2xl drop-shadow">{{ $banner->title }}</p>
+                        </div>
+                        @endif
+                    @if($banner->link)
+                    </a>
+                    @endif
                 </div>
-
-                {{-- KOLOM VISUAL --}}
-                <div class="relative flex justify-center md:justify-end">
-                    <div class="relative z-10 transform md:translate-x-10 md:rotate-6">
-                        {{-- Warna ikon aku ganti ke orange terang biar kontras --}}
-                        <i data-lucide="cooking-pot" class="w-48 h-48 md:w-80 md:h-80 text-orange-300/30 stroke-[1.5]"></i>
-                    </div>
-                </div>
-            </div>
-            
-        </div>
-    </div>
-   
-
-    {{-- 3. HOT ITEM --}}
-    <div class="container mx-auto px-4 mt-20">
-        <div class="bg-white rounded-[2.5rem] p-8 md:p-10 border border-orange-100 shadow-sm relative overflow-hidden">
-            {{-- Hiasan Pojok --}}
-            <div class="absolute top-0 right-0 w-40 h-40 bg-red-50 rounded-bl-full opacity-60"></div>
-
-            <div class="flex items-center gap-4 mb-10 relative z-10">
-                <div class="bg-red-600 text-white px-4 py-1.5 rounded-full font-black text-xs uppercase italic animate-pulse flex items-center gap-1.5 shadow-lg shadow-red-200">
-                    <i data-lucide="zap" class="w-3 h-3"></i> Hot Item!
-                </div>
-                <h3 class="font-black text-gray-900 text-2xl uppercase italic tracking-tight">
-                    Koleksi Terfavorit
-                </h3>
+                @endforeach
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 md:gap-6 relative z-10">
-                @foreach($products->shuffle()->take(5) as $product)
-                    <x-product-card :product="$product" />
+            {{-- Prev --}}
+            <button @click="prev()" class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition">
+                <i class="fas fa-chevron-left text-sm"></i>
+            </button>
+
+            {{-- Next --}}
+            <button @click="next()" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full flex items-center justify-center backdrop-blur-sm transition">
+                <i class="fas fa-chevron-right text-sm"></i>
+            </button>
+
+            {{-- Dots --}}
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                @foreach($banners as $i => $banner)
+                <button @click="goTo({{ $i }})"
+                        :class="current === {{ $i }} ? 'bg-white w-6' : 'bg-white/50 w-2'"
+                        class="h-2 rounded-full transition-all duration-300"></button>
                 @endforeach
             </div>
         </div>
+
+        {{-- Fallback kalau tidak ada banner --}}
+        @else
+        <div class="rounded-[3rem] p-10 md:p-20 text-white shadow-2xl border-4 border-white relative overflow-hidden"
+            style="background: linear-gradient(135deg, #4c2203 0%, #a1500a 40%, #E1700F 100%);">
+            <div class="relative z-10 text-center">
+                <h2 class="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-white mb-3">
+                    Authentic <span style="color: #FDBA74;">Cookware</span>
+                </h2>
+                <p class="text-orange-100 text-sm md:text-lg opacity-90">
+                    Peralatan dapur berkualitas untuk kelezatan bintang lima
+                </p>
+            </div>
+        </div>
+        @endif
     </div>
 
-    {{-- 4. SEMUA KOLEKSI --}}
-    <div id="koleksi" class="container mx-auto px-4 mt-20">
-        <div class="mb-12 border-b-2 border-gray-100 pb-5 flex items-center justify-between">
+    @push('scripts')
+    <script>
+    function carousel(total) {
+        return {
+            current: 0,
+            total: total,
+            timer: null,
+            startX: 0,
+            init() {
+                this.startAuto();
+            },
+            startAuto() {
+                this.timer = setInterval(() => this.next(), 4000);
+            },
+            resetAuto() {
+                clearInterval(this.timer);
+                this.startAuto();
+            },  
+            next() {
+                this.current = (this.current + 1) % this.total;
+            },
+            prev() {
+                this.current = (this.current - 1 + this.total) % this.total;
+                this.resetAuto();
+            },
+            goTo(i) {
+                this.current = i;
+                this.resetAuto();
+            },
+            touchStart(e) {
+                this.startX = e.touches[0].clientX;
+            },
+            touchEnd(e) {
+                const diff = this.startX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 40) {
+                    diff > 0 ? this.next() : this.prev();
+                    this.resetAuto();
+                }
+            }
+        }
+    }
+    </script>
+    @endpush
+
+    {{-- 2. FILTER BAR --}}
+    <div id="filter-section" class="container mx-auto px-4 mt-6" x-data="filterBar()">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div class="flex flex-wrap gap-3 items-center">
+
+                {{-- Sort --}}
+                <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+                    <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-gray-400"></i>
+                    <select id="f-sort" onchange="applyFilter()" class="text-[11px] font-bold text-gray-600 bg-transparent outline-none cursor-pointer">
+                        <option value="latest"     {{ request('sort') == 'latest'     ? 'selected' : '' }}>Terbaru</option>
+                        <option value="popular"    {{ request('sort') == 'popular'    ? 'selected' : '' }}>Terlaris</option>
+                        <option value="price_asc"  {{ request('sort') == 'price_asc'  ? 'selected' : '' }}>Harga Terendah</option>
+                        <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Harga Tertinggi</option>
+                        <option value="rating"     {{ request('sort') == 'rating'     ? 'selected' : '' }}>Rating Terbaik</option>
+                    </select>
+                </div>
+
+                {{-- Kategori --}}
+                <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+                    <i data-lucide="layers" class="w-3.5 h-3.5 text-gray-400"></i>
+                    <select id="f-category" onchange="applyFilter()" class="text-[11px] font-bold text-gray-600 bg-transparent outline-none cursor-pointer">
+                        <option value="semua">Semua Kategori</option>
+                        @foreach($categories as $cat)
+                            @if($cat['name'] !== 'Semua')
+                            <option value="{{ $cat['name'] }}" {{ request('category') == $cat['name'] ? 'selected' : '' }}>{{ $cat['name'] }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Rating --}}
+                <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+                    <i data-lucide="star" class="w-3.5 h-3.5 text-orange-400"></i>
+                    <select id="f-rating" onchange="applyFilter()" class="text-[11px] font-bold text-gray-600 bg-transparent outline-none cursor-pointer">
+                        <option value="">Semua Rating</option>
+                        <option value="4" {{ request('min_rating') == '4' ? 'selected' : '' }}>4★ ke atas</option>
+                        <option value="3" {{ request('min_rating') == '3' ? 'selected' : '' }}>3★ ke atas</option>
+                        <option value="2" {{ request('min_rating') == '2' ? 'selected' : '' }}>2★ ke atas</option>
+                    </select>
+                </div>
+
+                {{-- Stok --}}
+                <label class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer">
+                    <input type="checkbox" id="f-stock" value="1" {{ request('in_stock') ? 'checked' : '' }} onchange="applyFilter()" class="w-3.5 h-3.5 accent-[#E1700F]">
+                    <span class="text-[11px] font-bold text-gray-600">Stok Tersedia</span>
+                </label>
+
+                {{-- Toggle Harga --}}
+                <button type="button" @click="showPrice = !showPrice"
+                    class="flex items-center gap-2 px-3 py-2 rounded-xl border transition text-[11px] font-bold"
+                    :class="showPrice ? 'bg-orange-50 border-orange-200 text-[#E1700F]' : 'bg-gray-50 border-gray-100 text-gray-600'">
+                    <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
+                    Filter Harga
+                    <span x-show="{{ request()->hasAny(['min_price','max_price']) ? 'true' : 'false' }}" class="w-2 h-2 rounded-full bg-[#E1700F]"></span>
+                </button>
+
+                {{-- Reset --}}
+                <button type="button" id="btn-reset" onclick="resetFilter()"
+                    class="hidden items-center gap-1.5 px-3 py-2 rounded-xl border border-red-100 bg-red-50 text-red-500 text-[11px] font-bold hover:bg-red-100 transition">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i> Reset
+                </button>
+
+                {{-- Jumlah produk --}}
+                <span id="product-count" class="ml-auto text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                    {{ $products->count() }} Produk
+                </span>
+            </div>
+
+            {{-- Filter Harga --}}
+            <div x-show="showPrice" x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 -translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="mt-4 pt-4 border-t border-gray-100">
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Harga</span>
+                    <div class="flex items-center gap-2 flex-1">
+                        <div class="flex items-center gap-1.5 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 flex-1">
+                            <span class="text-[10px] text-gray-400 font-bold">Rp</span>
+                            <input type="number" id="f-min-price" placeholder="Min" step="10000" min="0"
+                                value="{{ request('min_price') }}"
+                                class="w-full bg-transparent text-[11px] font-bold text-gray-700 outline-none">
+                        </div>
+                        <span class="text-gray-300 font-bold">—</span>
+                        <div class="flex items-center gap-1.5 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 flex-1">
+                            <span class="text-[10px] text-gray-400 font-bold">Rp</span>
+                            <input type="number" id="f-max-price" placeholder="Max" step="10000" min="0"
+                                value="{{ request('max_price') }}"
+                                class="w-full bg-transparent text-[11px] font-bold text-gray-700 outline-none">
+                        </div>
+                        <button type="button" onclick="applyFilter()"
+                            class="px-4 py-2 bg-[#E1700F] text-white rounded-xl text-[11px] font-black uppercase tracking-wider hover:bg-black transition whitespace-nowrap">
+                            Terapkan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 3. SEMUA KOLEKSI --}}
+    <div id="koleksi" class="container mx-auto px-4 mt-10">
+        <div class="mb-8 border-b-2 border-gray-100 pb-5 flex items-center justify-between">
             <h3 class="text-3xl font-black text-gray-900 italic uppercase tracking-tighter flex items-center gap-3">
                 <i data-lucide="box" class="w-6 h-6 text-[#E1700F]"></i>
                 Semua Koleksi Murazon
             </h3>
-            <div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-100 border border-gray-200">
-                <i data-lucide="layers-3" class="w-4 h-4 text-gray-400"></i>
-                <span class="text-gray-500 text-sm font-bold">{{ $products->count() }} Produk</span>
-            </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-10">
-            @forelse($products as $product)
-                <a href="/products/{{ $product->id }}" 
-                   class="product-card group bg-white rounded-[2rem] border border-gray-100 overflow-hidden flex flex-col relative shadow-sm">
-                    
-                    @if($product->is_cod_available)
-                    <div class="absolute top-4 left-4 z-10 bg-black/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 uppercase italic tracking-wider">
-                        <i data-lucide="truck" class="w-3.5 h-3.5"></i> COD
-                    </div>
-                    @endif
-
-                    <div class="aspect-square bg-gray-50 flex items-center justify-center p-6 relative overflow-hidden">
-                        @if($product->image)
-                            <img src="{{ asset('storage/' . $product->image) }}" 
-                                 class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-out">
-                        @else
-                            <div class="text-gray-200">
-                                <i data-lucide="cooking-pot" class="w-20 h-20 stroke-[1]"></i>
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="p-6 flex flex-col grow">
-                        <span class="text-[10px] font-bold text-[#E1700F] uppercase tracking-widest mb-2.5">
-                            {{ $product->category ?? 'Premium Cookware' }}
-                        </span>
-                        <h2 class="text-sm md:text-base font-semibold text-gray-900 line-clamp-2 h-10 md:h-12 mb-4 leading-snug group-hover:text-[#E1700F] transition-colors">
-                            {{ $product->name }}
-                        </h2>
-                        <div class="mt-auto pt-3 border-t border-gray-100">
-                            <p class="text-lg md:text-xl font-black text-gray-950 flex items-baseline gap-1">
-                                <span class="text-xs text-[#E1700F] font-bold">Rp</span>
-                                {{ number_format($product->price) }}
-                            </p>
-                        </div>
-                    </div>
-                </a>
-            @empty
-                <div class="col-span-full py-32 text-center bg-white rounded-3xl border border-gray-100 shadow-inner">
-                    <div class="text-gray-200 mb-6 flex justify-center">
-                        <i data-lucide="package-search" class="w-24 h-24 stroke-[1]"></i>
-                    </div>
-                    <p class="text-gray-400 font-bold uppercase italic tracking-widest text-lg">Koleksi sedang dipersiapkan...</p>
-                </div>
-            @endforelse
+        <div id="product-grid-wrapper">
+            @include('products._grid', ['products' => $products, 'hotItems' => $hotItems])
         </div>
     </div>
 </div>
 @endsection
 
 @push('scripts')
-{{-- Tidak butuh Swiper JS --}}
+<script>
+function filterBar() {
+    return {
+        showPrice: {{ request()->hasAny(['min_price', 'max_price']) ? 'true' : 'false' }},
+    }
+}
+
+function buildParams() {
+    const params = new URLSearchParams();
+    const sort     = document.getElementById('f-sort').value;
+    const category = document.getElementById('f-category').value;
+    const rating   = document.getElementById('f-rating').value;
+    const stock    = document.getElementById('f-stock').checked;
+    const minPrice = document.getElementById('f-min-price').value;
+    const maxPrice = document.getElementById('f-max-price').value;
+
+    if (sort && sort !== 'latest') params.set('sort', sort); // ← Jangan set kalau default
+    if (category && category !== 'semua') params.set('category', category);
+    if (rating)        params.set('min_rating', rating);
+    if (stock)         params.set('in_stock', '1');
+    if (minPrice)      params.set('min_price', minPrice);
+    if (maxPrice)      params.set('max_price', maxPrice);
+
+    return params;
+}
+
+function checkReset(params) {
+    const btn = document.getElementById('btn-reset');
+    btn.classList.toggle('hidden', params.toString() === '');
+    btn.classList.toggle('flex', params.toString() !== '');
+}
+
+async function applyFilter() {
+    const params  = buildParams();
+    const wrapper = document.getElementById('product-grid-wrapper');
+    const counter = document.getElementById('product-count');
+
+    checkReset(params);
+    wrapper.classList.add('loading');
+
+    try {
+        const res  = await fetch('/?' + params.toString() + '&partial=1');
+        const html = await res.text();
+        wrapper.innerHTML = html;
+        window.lucide?.createIcons();
+
+        // Update jumlah produk
+        const countMatch = html.match(/data-count="(\d+)"/);
+        if (countMatch) counter.textContent = countMatch[1] + ' Produk';
+
+        // Update URL tanpa reload
+        history.replaceState(null, '', '/?' + params.toString());
+    } catch(e) {
+        console.error(e);
+    } finally {
+        wrapper.classList.remove('loading');
+    }
+}
+
+function resetFilter() {
+    document.getElementById('f-sort').value     = 'latest';
+    document.getElementById('f-category').value = 'semua';
+    document.getElementById('f-rating').value   = '';
+    document.getElementById('f-stock').checked  = false;
+    document.getElementById('f-min-price').value = '';
+    document.getElementById('f-max-price').value = '';
+    applyFilter();
+}
+</script>
 @endpush
