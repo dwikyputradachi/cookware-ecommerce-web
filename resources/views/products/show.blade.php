@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $product->name . ' - Murazon Cookware')
+@section('title', $product->name . ' - Murazon Shopping Market')
 
 @section('content')
 <div class="container mx-auto px-4 py-8 max-w-5xl">
