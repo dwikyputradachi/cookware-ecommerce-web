@@ -192,7 +192,7 @@ const paymentDetails = {
         @json($pm->payment_key): {
             title: @json($pm->label),
             number: @json($pm->account_number),
-            name: @json($pm->account_name ?? 'Murazon Cookware'),
+            name: @json($pm->account_name ?? 'Murazon Shopping Market'),
             qr: @json($pm->qr_image ?? ''),
         },
     @endforeach
@@ -631,7 +631,7 @@ window.checkout = async function() {
         const isPaid = result.data_server.payment_method !== 'cod';
 
         const msg =
-            `PESANAN BARU - MURAZON COOKWARE\n` +
+            `PESANAN BARU - MURAZON SHOPPING MARKET\n` +
             `Order ID: #${result.order_id}\n` +
             `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
             `DETAIL PELANGGAN\n` +
