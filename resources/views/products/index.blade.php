@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Katalog - Murazon Cookware')
+@section('title', 'Katalog - Murazon Shopping Market')
 
 @push('styles')
 <style>
